@@ -45,14 +45,15 @@ demographics = get_IXI_demographics(study_dir);
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
 
 # use a subset only for quick testing
-subjects_list = subjects_list[1:30];
+subjects_list = subjects_list[1:10];
+sex = demographics$`SEX_ID (1=m, 2=f)`[1:10];
 
-data = fsbrain::group.morph.standard(subjects_dir, subjects_list, measure, fwhm = "10", df = TRUE);
-
+data = fsbrain::group.morph.standard(subjects_dir, subjects_list, measure, fwhm = "10", df_t = TRUE);
+data$y = sex;
 
 ##### Train and evaluate model #####
 
-fit = kernlab::gausspr(Species~.,data=iris,var=2)
+fit = kernlab::gausspr(y ~ ., data = data);
 
 
 
