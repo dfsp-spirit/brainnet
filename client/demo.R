@@ -40,14 +40,19 @@ get_IXI_demographics <- function(study_dir) {
 
 measure = "thickness";
 study_dir = "/Volumes/shared/projects/IXI_dataset/";
-subjects_dir = file.path(study_dir, "IXI-T1/"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
+subjects_dir = file.path(study_dir, "IXI-T1"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 demographics = get_IXI_demographics(study_dir);
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
-data = fsbrain::group.morph.standard(subjects_dir, subjects_list, measure, fwhm = "10");
+
+# use a subset only for quick testing
+subjects_list = subjects_list[1:30];
+
+data = fsbrain::group.morph.standard(subjects_dir, subjects_list, measure, fwhm = "10", df = TRUE);
 
 
 ##### Train and evaluate model #####
 
+fit = kernlab::gausspr(Species~.,data=iris,var=2)
 
 
 
