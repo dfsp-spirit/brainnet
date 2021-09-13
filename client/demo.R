@@ -4,6 +4,7 @@
 #
 # Written by Tim Schäfer, 2021-09-10
 
+library("brainnet");
 library("fsbrain");
 library("kernlab");
 library("readxl");
@@ -39,7 +40,12 @@ get_IXI_demographics <- function(study_dir) {
 ##### Load data #####
 
 measure = "thickness";
-study_dir = "/Volumes/shared/projects/IXI_dataset/";
+
+if(brainnet:::get_os() == "linux") {
+    study_dir = "~/nas/projects/IXI_dataset/";
+} else {
+    study_dir = "/Volumes/shared/projects/IXI_dataset/";
+}
 subjects_dir = file.path(study_dir, "IXI-T1"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 demographics = get_IXI_demographics(study_dir);
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
