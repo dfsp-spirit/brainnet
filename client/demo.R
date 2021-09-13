@@ -57,7 +57,17 @@ sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:10];
 
 ##### Train and evaluate model #####
 
-data_training = fsbrain::group.morph.standard(subjects_dir, subjects_training, measure, fwhm = "10", df_t = TRUE);
+do_use_region_data = TRUE;
+
+if(do_use_region_data) {
+    data_training = fsbrain::group.agg.atlas.native(subjects_dir, subjects_training, measure, hemi="both", atlas="aparc");
+    data_training$subject = NULL;
+    data_training$unknown = NULL;
+    data_training$corpuscallosum = NULL;
+} else {
+    data_training = fsbrain::group.morph.standard(subjects_dir, subjects_training, measure, fwhm = "10", df_t = TRUE);
+}
+
 data_training$y = sex_training;
 
 ##### Train and evaluate model #####
@@ -70,7 +80,14 @@ fit_model = kernlab::gausspr(y ~ ., data = data_training);
 subjects_testing = subjects_list[11:20];
 sex_testing = demographics$`SEX_ID (1=m, 2=f)`[11:20];
 
-data_testing = fsbrain::group.morph.standard(subjects_dir, subjects_testing, measure, fwhm = "10", df_t = TRUE);
+if(do_use_region_data) {
+    data_testing = fsbrain::group.agg.atlas.native(subjects_dir, subjects_testing, measure, hemi="both", atlas="aparc");
+    data_testing$subject = NULL;
+    data_testing$unknown = NULL;
+    data_testing$corpuscallosum = NULL;
+} else {
+    data_testing = fsbrain::group.morph.standard(subjects_dir, subjects_testing, measure, fwhm = "10", df_t = TRUE);
+}
 
 res = predict(fit_model, data_testing);
 
