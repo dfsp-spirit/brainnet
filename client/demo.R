@@ -89,7 +89,9 @@ if(do_use_region_data) {
     data_testing = fsbrain::group.morph.standard(subjects_dir, subjects_testing, measure, fwhm = "10", df_t = TRUE);
 }
 
+cat(sprintf("Trained on %d subject, tested on %d.\n", length(subjects_training), length(subjects_testing)));
 res = predict(fit_model, data_testing);
+
 
 
 
