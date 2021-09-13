@@ -51,8 +51,8 @@ demographics = get_IXI_demographics(study_dir);
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
 
 # use a subset only for quick testing
-subjects_training = subjects_list[1:10];
-sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:10];
+subjects_training = subjects_list[1:500];
+sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:500];
 
 
 ##### Train and evaluate model #####
@@ -72,13 +72,13 @@ data_training$y = sex_training;
 
 ##### Train and evaluate model #####
 
-fit_model = kernlab::gausspr(y ~ ., data = data_training);
+fit_model = kernlab::gausspr(y ~ ., data = data_training, type = "classification");
 
 
 #### Validate on test data #####
 
-subjects_testing = subjects_list[11:20];
-sex_testing = demographics$`SEX_ID (1=m, 2=f)`[11:20];
+subjects_testing = subjects_list[501:length(subjects_list)];
+sex_testing = demographics$`SEX_ID (1=m, 2=f)`[501:length(subjects_list)];
 
 if(do_use_region_data) {
     data_testing = fsbrain::group.agg.atlas.native(subjects_dir, subjects_testing, measure, hemi="both", atlas="aparc");
