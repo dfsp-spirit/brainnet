@@ -17,8 +17,16 @@ get_IXI_demographics <- function(study_dir, subjects_dir) {
     ##### Load metadata / demographics #####
 
     ## This is a bit annoying for the IXI dataset, see comments below.
-    demographics_file = file.path(study_dir, "IXI.xls")
+    demographics_file = file.path(study_dir, "IXI_fixed.xls")
     demographics = readxl::read_excel(demographics_file);
+
+    # Various columns contain 0 values for some subjects (e.g., a height of 0 cm), which really mean NA. Fix this.
+    demographics$HEIGHT[demographics$HEIGHT == 0] = NA;
+    demographics$WEIGHT[demographics$WEIGHT == 0] = NA;
+    demographics$ETHNIC_ID[demographics$ETHNIC_ID == 0] = NA;
+    demographics$MARITAL_ID[demographics$MARITAL_ID == 0] = NA;
+    demographics$OCCUPATION_ID[demographics$OCCUPATION_ID == 0] = NA;
+    demographics$QUALIFICATION_ID[demographics$QUALIFICATION_ID == 0] = NA;
 
     ## The demographics file for the IXI dataset does NOT contain the subject data directory names
     ## and there is no way to construct them from the data in there. We need to search the directories
@@ -35,15 +43,51 @@ get_IXI_demographics <- function(study_dir, subjects_dir) {
     return(metadata);
 }
 
+##### Helper functions #####
+
+
+#' Compute metrics for classification model evaluation
+#'
+#' @param actual vector of actual labels
+#'
+#' @param predicted vector of predicted labels
+#'
+#' @return Nothing, called for printing side effect.
+evaluate_model <- function(actual, predicted) {
+    cm = as.matrix(table(Actual = actual, Predicted = predicted)); # confusion matrix
+
+    n = sum(cm) # number of instances
+    nc = nrow(cm) # number of classes
+    diag = diag(cm) # number of correctly classified instances per class
+    rowsums = apply(cm, 1, sum) # number of instances per class
+    colsums = apply(cm, 2, sum) # number of predictions per class
+    p = rowsums / n # distribution of instances over the actual classes
+    q = colsums / n # distribution of instances over the predicted classes
+
+    # per class
+    accuracy = sum(diag) / n
+    precision = diag / colsums
+    recall = diag / rowsums
+    f1 = 2 * precision * recall / (precision + recall)
+    print(data.frame(precision, recall, f1))
+
+    # macro-averaged
+    macroPrecision = mean(precision)
+    macroRecall = mean(recall)
+    macroF1 = mean(f1)
+    print(data.frame(macroPrecision, macroRecall, macroF1))
+    return(invisible(NULL));
+}
+
 
 ##### Load data #####
 
 measure = "thickness";
 
 if(brainnet:::get_os() == "linux") {
-    study_dir = "~/nas/projects/IXI_dataset/";
+    study_dir = "~/nas/projects/IXI_dataset";
 } else {
-    study_dir = "/Volumes/shared/projects/IXI_dataset/";
+    study_dir = "/Volumes/shared/projects/IXI_dataset";
 }
 subjects_dir = file.path(study_dir, "mri/freesurfer"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 demographics = get_IXI_demographics(study_dir, subjects_dir);
@@ -52,7 +96,7 @@ subjects_list = demographics$subject_data_dirname; # The directory names for the
 
 
 # use a subset only
-num_subjects_training = 30;
+num_subjects_training = 400;
 subjects_training = subjects_list[1:num_subjects_training];
 fsbrain:::check.subjectslist(subjects_training, subjects_dir = subjects_dir, report_name = "subjects_training");
 sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:num_subjects_training];
@@ -80,7 +124,8 @@ fit_model = kernlab::gausspr(y ~ ., data = data_training, type = "classification
 
 #### Validate on test data #####
 
-num_subjects_testing = 30L;
+#num_subjects_testing = 30L;
+num_subjects_testing = length(subjects_list) - num_subjects_testing;
 first_idx_testing = num_subjects_training + 1L;
 last_idx_testing = first_idx_testing + num_subjects_testing - 1L;
 subjects_testing = subjects_list[first_idx_testing:last_idx_testing];
@@ -98,12 +143,5 @@ if(do_use_region_data) {
 
 cat(sprintf("Trained on %d subject, tested on %d.\n", length(subjects_training), length(subjects_testing)));
 res = predict(fit_model, data_testing);
-
-
-
-
-
-
-
 
 
