@@ -125,7 +125,7 @@ fit_model = kernlab::gausspr(y ~ ., data = data_training, type = "classification
 #### Validate on test data #####
 
 #num_subjects_testing = 30L;
-num_subjects_testing = length(subjects_list) - num_subjects_testing;
+num_subjects_testing = length(subjects_list) - num_subjects_training;
 first_idx_testing = num_subjects_training + 1L;
 last_idx_testing = first_idx_testing + num_subjects_testing - 1L;
 subjects_testing = subjects_list[first_idx_testing:last_idx_testing];
@@ -143,5 +143,5 @@ if(do_use_region_data) {
 
 cat(sprintf("Trained on %d subject, tested on %d.\n", length(subjects_training), length(subjects_testing)));
 res = predict(fit_model, data_testing);
-
+evaluate_model(sex_testing, res);
 
