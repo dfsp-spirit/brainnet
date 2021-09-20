@@ -143,5 +143,6 @@ if(do_use_region_data) {
 
 cat(sprintf("Trained on %d subject, tested on %d.\n", length(subjects_training), length(subjects_testing)));
 res = predict(fit_model, data_testing);
-evaluate_model(sex_testing, res);
+evaluate_model(actual = sex_testing, predicted =  res);
+
 
