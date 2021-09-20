@@ -12,8 +12,7 @@ library("readxl");
 
 #### Setup data ####
 
-get_IXI_demographics <- function(study_dir) {
-    subjects_dir = file.path(study_dir, "IXI-T1");
+get_IXI_demographics <- function(study_dir, subjects_dir) {
 
     ##### Load metadata / demographics #####
 
@@ -46,13 +45,17 @@ if(brainnet:::get_os() == "linux") {
 } else {
     study_dir = "/Volumes/shared/projects/IXI_dataset/";
 }
-subjects_dir = file.path(study_dir, "IXI-T1"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
-demographics = get_IXI_demographics(study_dir);
+subjects_dir = file.path(study_dir, "mri/freesurfer"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
+demographics = get_IXI_demographics(study_dir, subjects_dir);
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
 
-# use a subset only for quick testing
-subjects_training = subjects_list[1:500];
-sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:500];
+
+
+# use a subset only
+num_subjects_training = 30;
+subjects_training = subjects_list[1:num_subjects_training];
+fsbrain:::check.subjectslist(subjects_training, subjects_dir = subjects_dir, report_name = "subjects_training");
+sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:num_subjects_training];
 
 
 ##### Train and evaluate model #####
@@ -77,8 +80,12 @@ fit_model = kernlab::gausspr(y ~ ., data = data_training, type = "classification
 
 #### Validate on test data #####
 
-subjects_testing = subjects_list[501:length(subjects_list)];
-sex_testing = demographics$`SEX_ID (1=m, 2=f)`[501:length(subjects_list)];
+num_subjects_testing = 30L;
+first_idx_testing = num_subjects_training + 1L;
+last_idx_testing = first_idx_testing + num_subjects_testing - 1L;
+subjects_testing = subjects_list[first_idx_testing:last_idx_testing];
+fsbrain:::check.subjectslist(subjects_testing, subjects_dir = subjects_dir, report_name = "subjects_testing");
+sex_testing = demographics$`SEX_ID (1=m, 2=f)`[first_idx_testing:last_idx_testing];
 
 if(do_use_region_data) {
     data_testing = fsbrain::group.agg.atlas.native(subjects_dir, subjects_testing, measure, hemi="both", atlas="aparc");
