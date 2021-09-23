@@ -35,8 +35,9 @@ subjects_list = demographics$subject_data_dirname; # The directory names for the
 # use a subset only
 num_subjects_training = 400L;
 subjects_training = subjects_list[1:num_subjects_training];
+subjects_training_row_indices = which(demographics$subject_data_dirname %in% subjects_training);
 fsbrain:::check.subjectslist(subjects_training, subjects_dir = subjects_dir, report_name = "subjects_training");
-sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:num_subjects_training];
+sex_training = demographics$`SEX_ID (1=m, 2=f)`[subjects_training_row_indices];
 
 
 ##### Train and evaluate model #####
@@ -44,15 +45,25 @@ sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:num_subjects_training];
 do_use_region_data = TRUE;
 
 if(do_use_region_data) {
-    data_training = fsbrain::group.agg.atlas.native(subjects_dir, subjects_training, measure, hemi="both", atlas="aparc");
-    data_training$subject = NULL;
-    data_training$unknown = NULL;
-    data_training$corpuscallosum = NULL;
+    data_full = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure, hemi="both", atlas="aparc");
+    data_full$subject = NULL;
+    data_full$unknown = NULL;
+    data_full$corpuscallosum = NULL;
+
+    # add demographics data.
+    data_full$sex = demographics$`SEX_ID (1=m, 2=f)`;
+    data_full$age = demographics$AGE;
+    data_full$height = demographics$HEIGHT;
+
+    data_training = data_full[subjects_training_row_indices, ];
 } else {
     data_training = fsbrain::group.morph.standard(subjects_dir, subjects_training, measure, fwhm = "10", df_t = TRUE);
 }
 
-data_training$y = sex_training;
+# We want to predict sex
+data_training$y = data_training$sex;
+data_training$sex = NULL;
+
 
 ##### Train and evaluate model #####
 
@@ -66,14 +77,12 @@ num_subjects_testing = length(subjects_list) - num_subjects_training;
 first_idx_testing = num_subjects_training + 1L;
 last_idx_testing = first_idx_testing + num_subjects_testing - 1L;
 subjects_testing = subjects_list[first_idx_testing:last_idx_testing];
+subjects_testing_row_indices = which(demographics$subject_data_dirname %in% subjects_testing);
 fsbrain:::check.subjectslist(subjects_testing, subjects_dir = subjects_dir, report_name = "subjects_testing");
-sex_testing = demographics$`SEX_ID (1=m, 2=f)`[first_idx_testing:last_idx_testing];
+sex_testing = demographics$`SEX_ID (1=m, 2=f)`[subjects_testing_row_indices];
 
 if(do_use_region_data) {
-    data_testing = fsbrain::group.agg.atlas.native(subjects_dir, subjects_testing, measure, hemi="both", atlas="aparc");
-    data_testing$subject = NULL;
-    data_testing$unknown = NULL;
-    data_testing$corpuscallosum = NULL;
+    data_testing = data_full[subjects_testing_row_indices, ];
 } else {
     data_testing = fsbrain::group.morph.standard(subjects_dir, subjects_testing, measure, fwhm = "10", df_t = TRUE);
 }

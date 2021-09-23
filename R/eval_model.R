@@ -25,9 +25,9 @@ evaluate_model <- function(actual, predicted) {
     cat(sprintf("Evalutating classification results: %d testing instances assigned to %d classes.\n", length(actual), nc));
 
     # per class
-    accuracy = sum(diag) / n;
+    accuracy = sum(mdiag) / n;
     precision = mdiag / colsums;
-    recall = diag / rowsums;
+    recall = mdiag / rowsums;
     f1 = 2 * precision * recall / (precision + recall);
     print(data.frame(precision, recall, accuracy, f1));
 
