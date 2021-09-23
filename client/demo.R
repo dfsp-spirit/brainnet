@@ -8,7 +8,6 @@ library("brainnet");
 library("fsbrain");
 library("kernlab");
 library("readxl");
-library("fastglm");
 
 
 ##### Load data #####
@@ -42,33 +41,34 @@ sex_training = demographics$`SEX_ID (1=m, 2=f)`[subjects_training_row_indices];
 
 ##### Train and evaluate model #####
 
-do_use_region_data = TRUE;
 
-if(do_use_region_data) {
-    data_full = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure, hemi="both", atlas="aparc");
-    data_full$subject = NULL;
-    data_full$unknown = NULL;
-    data_full$corpuscallosum = NULL;
+data_full = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure, hemi="both", atlas="aparc");
+data_full$subject = NULL;  # delete subject ID, not needed.
+data_full$unknown = NULL;  # The 'unknown' and 'corpuscallosum' columns do not contain any valid data.
+data_full$corpuscallosum = NULL;
 
-    # add demographics data.
-    data_full$sex = demographics$`SEX_ID (1=m, 2=f)`
-    data_full$sex = data_full$sex - 1.0;
-    data_full$age = demographics$AGE;
-    data_full$height = demographics$HEIGHT;
+considered_atlas_regions = colnames(data_full);
 
-    data_training = data_full[subjects_training_row_indices, ];
-} else {
-    data_training = fsbrain::group.morph.standard(subjects_dir, subjects_training, measure, fwhm = "10", df_t = TRUE);
-}
+# add demographics data.
+data_full$sex = demographics$`SEX_ID (1=m, 2=f)`
+data_full$sex = data_full$sex - 1.0;
+data_full$age = demographics$AGE;
+data_full$height = demographics$HEIGHT;
 
-# We want to predict sex
-data_training$y = data_training$sex;
-data_training$sex = NULL;
+data_training = data_full[subjects_training_row_indices, ];
 
+
+#data_training = fsbrain::group.morph.standard(subjects_dir, subjects_training, measure, fwhm = "10", df_t = TRUE);
+
+
+
+################################################################################
+##################### Run Gaussian Process Classification ######################
+################################################################################
 
 ##### Train and evaluate model #####
 
-fit_model = kernlab::gausspr(y ~ ., data = data_training, type = "classification");
+fit_model = kernlab::gausspr(sex ~ ., data = data_training, type = "classification");
 
 
 #### Validate on test data #####
@@ -80,36 +80,46 @@ last_idx_testing = first_idx_testing + num_subjects_testing - 1L;
 subjects_testing = subjects_list[first_idx_testing:last_idx_testing];
 subjects_testing_row_indices = which(demographics$subject_data_dirname %in% subjects_testing);
 fsbrain:::check.subjectslist(subjects_testing, subjects_dir = subjects_dir, report_name = "subjects_testing");
-sex_testing = demographics$`SEX_ID (1=m, 2=f)`[subjects_testing_row_indices];
 
-if(do_use_region_data) {
-    data_testing = data_full[subjects_testing_row_indices, ];
-} else {
-    data_testing = fsbrain::group.morph.standard(subjects_dir, subjects_testing, measure, fwhm = "10", df_t = TRUE);
-}
+data_testing = data_full[subjects_testing_row_indices, ];
+sex_testing = data_testing$sex;
 
 cat(sprintf("Trained on %d subjects, tested on %d.\n", length(subjects_training), length(subjects_testing)));
+data_testing$sex = NULL; # delete true labels.
 res = predict(fit_model, data_testing);
 brainnet::evaluate_model(actual = sex_testing, predicted =  res);
 
 
-##### Run GLM for group comparison: predict sex from data #####
-data_full_no_y = data_full;
-data_full_no_y$sex = NULL;
-X = data_full_no_y;
-y = data_full$sex;
-X = as.matrix(X);
-glm_family = "gaussian";
-cat(sprintf("Fitting GLM with family '%s'.\n", glm_family));
+################################################################################
+##################### Predict Sex using logistic regression ####################
+################################################################################
 
-#fit1 <- fastglm::fastglm(X, y, family = glm_family);
-fit1 <- glm(formula = sex ~ age + height, data = data_full);
-ggiraphExtra::ggPredict(fit1,colorAsFactor = TRUE,interactive=TRUE)
+
+##### Model comparison: with and without the neuroimaging data
+
+##### No neuroimaging data: predict based on age + height only:
+fit1 <- glm(formula = sex ~ age + height, data = data_full, family=binomial(link='logit'));
 summary(fit1);
 
-## Re-run without neuroimaging data, demographics only
-X2 = as.matrix(data.frame('age'=data_full$age, 'height'=data_full$height));
-fit2 <- fastglm::fastglm(X2, y, family = glm_family);
-summary(fit2);
+##### Add neuroimaging data for all atlas regions:
+fit2 <- glm(formula = sex ~ ., data = data_full, family=binomial(link='logit'));
+summary(fit1);
+
+## Look at the AIC values in the output (keep in mind that lower AIC sores are better.)
+
+
+################################################################################
+###### Look at effect of sex for predicting NI data for all regions ############
+################################################################################
+
+region_idx = 1L;
+for(region_name in considered_atlas_regions) {
+    formula_region = sprintf("%s ~ sex + age", region_name);
+    fit_region = glm(formula = formula_region, data = data_full, family=gaussian());
+    cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
+    print(summary(fit_region));
+    region_idx = region_idx + 1L;
+}
+
 
 
