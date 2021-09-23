@@ -11,44 +11,6 @@ library("readxl");
 library("fastglm");
 
 
-#### Setup data ####
-
-get_IXI_demographics <- function(study_dir, subjects_dir) {
-
-    ##### Load metadata / demographics #####
-
-    ## This is a bit annoying for the IXI dataset, see comments below.
-    demographics_file = file.path(study_dir, "IXI_fixed.xls")
-    demographics = readxl::read_excel(demographics_file);
-
-    # Various columns contain 0 values for some subjects (e.g., a height of 0 cm), which really mean NA. Fix this.
-    demographics$HEIGHT[demographics$HEIGHT == 0] = NA;
-    demographics$WEIGHT[demographics$WEIGHT == 0] = NA;
-    demographics$ETHNIC_ID[demographics$ETHNIC_ID == 0] = NA;
-    demographics$MARITAL_ID[demographics$MARITAL_ID == 0] = NA;
-    demographics$OCCUPATION_ID[demographics$OCCUPATION_ID == 0] = NA;
-    demographics$QUALIFICATION_ID[demographics$QUALIFICATION_ID == 0] = NA;
-
-    # Fix date of birth for last subject, which is mis-formatted.
-    demographics$DOB[nrow(demographics)] = "1963-08-03";
-    demographics$DOB = parsedate::parse_date(demographics$DOB);
-
-    ## The demographics file for the IXI dataset does NOT contain the subject data directory names
-    ## and there is no way to construct them from the data in there. We need to search the directories
-    ## in the subjects_dir for ones starting with the expected pattern and match on them. ><
-    demographics$subject_id_padded = sprintf("%03d", demographics$IXI_ID); # turn stuff like '12' into '012', like the dir names.
-
-    ixi_dirs_and_files = list.files(path = subjects_dir, pattern="IXI[[:digit:]]{3}-");
-    ixi_dirs = ixi_dirs_and_files[file.info(file.path(subjects_dir, ixi_dirs_and_files))$isdir];
-    dir_info = data.frame("subject_data_dirname"=ixi_dirs, "subject_id_padded"=substring(ixi_dirs, 4,6)); # construct field to match on.
-
-
-    metadata = base::merge(demographics, dir_info, by="subject_id_padded");     # Merge data.frames to retain only subjects with a FreeSurfer data directory.
-    metadata = metadata[complete.cases(metadata),];                             # Remove all subjects with NA values in the metadata. These are subjects for which the age is unknown.
-    return(metadata);
-}
-
-
 ##### Load data #####
 
 measure = "thickness";
@@ -62,11 +24,9 @@ if(brainnet:::get_os() == "linux") {
     study_dir = "/Volumes/shared/projects/IXI_dataset";
 }
 subjects_dir = file.path(study_dir, "mri/freesurfer"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
-demographics = get_IXI_demographics(study_dir, subjects_dir);
+demographics_file = system.file("extdata", "IXI_demographics_filtered_fixed.xlsx", package = "brainnet", mustWork = TRUE);
+demographics = readxl::read_excel(demographics_file);
 
-## Save the computed demographics to a file so we do not need to do this every time (and we can use them in shell scripts or other programs
-##  without having to repeat the fixing.)
-WriteXLS::WriteXLS(list("IXI_demographics"=demographics), ExcelFileName = file.path(study_dir, "IXI_fixed_full.xlsx"));
 
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
 
