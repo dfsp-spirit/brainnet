@@ -8,6 +8,7 @@ library("brainnet");
 library("fsbrain");
 library("kernlab");
 library("readxl");
+library("fastglm");
 
 
 #### Setup data ####
@@ -43,42 +44,6 @@ get_IXI_demographics <- function(study_dir, subjects_dir) {
     return(metadata);
 }
 
-##### Helper functions #####
-
-
-#' Compute metrics for classification model evaluation
-#'
-#' @param actual vector of actual labels
-#'
-#' @param predicted vector of predicted labels
-#'
-#' @return Nothing, called for printing side effect.
-evaluate_model <- function(actual, predicted) {
-    cm = as.matrix(table(Actual = actual, Predicted = predicted)); # confusion matrix
-
-    n = sum(cm) # number of instances
-    nc = nrow(cm) # number of classes
-    diag = diag(cm) # number of correctly classified instances per class
-    rowsums = apply(cm, 1, sum) # number of instances per class
-    colsums = apply(cm, 2, sum) # number of predictions per class
-    p = rowsums / n # distribution of instances over the actual classes
-    q = colsums / n # distribution of instances over the predicted classes
-
-    # per class
-    accuracy = sum(diag) / n
-    precision = diag / colsums
-    recall = diag / rowsums
-    f1 = 2 * precision * recall / (precision + recall)
-    print(data.frame(precision, recall, f1))
-
-    # macro-averaged
-    macroPrecision = mean(precision)
-    macroRecall = mean(recall)
-    macroF1 = mean(f1)
-    print(data.frame(macroPrecision, macroRecall, macroF1))
-    return(invisible(NULL));
-}
-
 
 ##### Load data #####
 
@@ -86,6 +51,9 @@ measure = "thickness";
 
 if(brainnet:::get_os() == "linux") {
     study_dir = "~/nas/projects/IXI_dataset";
+    if(! dir.exists(study_dir)) {
+        study_dir = sprintf("/media/%s/science/data/IXI_dataset", Sys.getenv("LOGNAME"));
+    }
 } else {
     study_dir = "/Volumes/shared/projects/IXI_dataset";
 }
@@ -96,7 +64,7 @@ subjects_list = demographics$subject_data_dirname; # The directory names for the
 
 
 # use a subset only
-num_subjects_training = 400;
+num_subjects_training = 400L;
 subjects_training = subjects_list[1:num_subjects_training];
 fsbrain:::check.subjectslist(subjects_training, subjects_dir = subjects_dir, report_name = "subjects_training");
 sex_training = demographics$`SEX_ID (1=m, 2=f)`[1:num_subjects_training];
@@ -141,8 +109,9 @@ if(do_use_region_data) {
     data_testing = fsbrain::group.morph.standard(subjects_dir, subjects_testing, measure, fwhm = "10", df_t = TRUE);
 }
 
-cat(sprintf("Trained on %d subject, tested on %d.\n", length(subjects_training), length(subjects_testing)));
+cat(sprintf("Trained on %d subjects, tested on %d.\n", length(subjects_training), length(subjects_testing)));
 res = predict(fit_model, data_testing);
-evaluate_model(actual = sex_testing, predicted =  res);
+brainnet::evaluate_model(actual = sex_testing, predicted =  res);
+
 
 
