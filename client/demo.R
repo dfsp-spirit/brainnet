@@ -29,6 +29,10 @@ get_IXI_demographics <- function(study_dir, subjects_dir) {
     demographics$OCCUPATION_ID[demographics$OCCUPATION_ID == 0] = NA;
     demographics$QUALIFICATION_ID[demographics$QUALIFICATION_ID == 0] = NA;
 
+    # Fix date of birth for last subject, which is mis-formatted.
+    demographics$DOB[nrow(demographics)] = "1963-08-03";
+    demographics$DOB = parsedate::parse_date(demographics$DOB);
+
     ## The demographics file for the IXI dataset does NOT contain the subject data directory names
     ## and there is no way to construct them from the data in there. We need to search the directories
     ## in the subjects_dir for ones starting with the expected pattern and match on them. ><
@@ -59,6 +63,11 @@ if(brainnet:::get_os() == "linux") {
 }
 subjects_dir = file.path(study_dir, "mri/freesurfer"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 demographics = get_IXI_demographics(study_dir, subjects_dir);
+
+## Save the computed demographics to a file so we do not need to do this every time (and we can use them in shell scripts or other programs
+##  without having to repeat the fixing.)
+WriteXLS::WriteXLS(list("IXI_demographics"=demographics), ExcelFileName = file.path(study_dir, "IXI_fixed_full.xlsx"));
+
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
 
 
