@@ -123,5 +123,6 @@ for(region_name in considered_atlas_regions) {
     region_idx = region_idx + 1L;
 }
 
+# Now investigate region_fits and pvalues_sex.
 
 
