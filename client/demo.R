@@ -51,7 +51,8 @@ if(do_use_region_data) {
     data_full$corpuscallosum = NULL;
 
     # add demographics data.
-    data_full$sex = demographics$`SEX_ID (1=m, 2=f)`;
+    data_full$sex = demographics$`SEX_ID (1=m, 2=f)`
+    data_full$sex = data_full$sex - 1.0;
     data_full$age = demographics$AGE;
     data_full$height = demographics$HEIGHT;
 
@@ -91,5 +92,24 @@ cat(sprintf("Trained on %d subjects, tested on %d.\n", length(subjects_training)
 res = predict(fit_model, data_testing);
 brainnet::evaluate_model(actual = sex_testing, predicted =  res);
 
+
+##### Run GLM for group comparison: predict sex from data #####
+data_full_no_y = data_full;
+data_full_no_y$sex = NULL;
+X = data_full_no_y;
+y = data_full$sex;
+X = as.matrix(X);
+glm_family = "gaussian";
+cat(sprintf("Fitting GLM with family '%s'.\n", glm_family));
+
+#fit1 <- fastglm::fastglm(X, y, family = glm_family);
+fit1 <- glm(formula = sex ~ age + height, data = data_full);
+ggiraphExtra::ggPredict(fit1,colorAsFactor = TRUE,interactive=TRUE)
+summary(fit1);
+
+## Re-run without neuroimaging data, demographics only
+X2 = as.matrix(data.frame('age'=data_full$age, 'height'=data_full$height));
+fit2 <- fastglm::fastglm(X2, y, family = glm_family);
+summary(fit2);
 
 
