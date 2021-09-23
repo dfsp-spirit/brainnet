@@ -113,11 +113,13 @@ summary(fit1);
 ################################################################################
 
 region_idx = 1L;
+region_fits = list();
+pvalues_sex = list();
 for(region_name in considered_atlas_regions) {
     formula_region = sprintf("%s ~ sex + age", region_name);
-    fit_region = glm(formula = formula_region, data = data_full, family=gaussian());
+    region_fits[[region_name]] = glm(formula = formula_region, data = data_full, family=gaussian());
     cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
-    print(summary(fit_region));
+    pvalues_sex[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
     region_idx = region_idx + 1L;
 }
 
