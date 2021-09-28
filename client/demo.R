@@ -141,7 +141,7 @@ split_named_list_by_hemi <- function(some_named_list) {
         } else if(startsWith(entry, 'rh_')) {
             rh_list[[substring(entry, 4L)]] = some_named_list[[entry]];
         } else {
-            cat(sprintf("Ignoring entry '%s'.\n", entry));
+            cat(sprintf("Ignoring entry '%s': does not start with 'lh_' or 'rh_'.\n", entry));
         }
     }
     return(list('lh'=lh_list, 'rh'=rh_list));
