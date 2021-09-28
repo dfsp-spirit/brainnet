@@ -117,11 +117,22 @@ summary(fit1);
 region_idx = 1L;
 region_fits = list();
 pvalues_sex = list();
+effect_sizes_sex = list();
 for(region_name in considered_atlas_regions) {
     formula_region = sprintf("%s ~ sex + age", region_name);
-    region_fits[[region_name]] = glm(formula = formula_region, data = data_full, family=gaussian());
+    fit = glm(formula = formula_region, data = data_full, family=gaussian());
+    region_fits[[region_name]] = fit;
     cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
     pvalues_sex[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
+
+    raw_sd_male = sd(data_full[[region_name]][data_full$sex == -1]);
+    raw_sd_female = sd(data_full[[region_name]][data_full$sex == 0]);
+    raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
+    effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
+    effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
+    cohen_d = (effect_sex_male_mean - effect_sex_female_mean) / raw_sd_pooled;
+    effect_sizes_sex[[region_name]] = abs(cohen_d); # we are not interested in direction for effect size.
+
     region_idx = region_idx + 1L;
 }
 
