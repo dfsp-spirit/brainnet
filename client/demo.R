@@ -45,10 +45,14 @@ sex_training = demographics$`SEX_ID (1=m, 2=f)`[subjects_training_row_indices];
 ##### Train and evaluate model #####
 
 
-data_full = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure, hemi="both", atlas="aparc");
+data_full = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure, hemi="split", atlas="aparc");
 data_full$subject = NULL;  # delete subject ID, not needed.
-data_full$unknown = NULL;  # The 'unknown' and 'corpuscallosum' columns do not contain any valid data.
-data_full$corpuscallosum = NULL;
+#data_full$unknown = NULL;  # The 'unknown' and 'corpuscallosum' columns do not contain any valid data.
+#data_full$corpuscallosum = NULL;
+data_full$lh_unknown = NULL;
+data_full$rh_unknown = NULL;
+data_full$lh_corpuscallosum = NULL;
+data_full$rh_corpuscallosum = NULL;
 
 considered_atlas_regions = colnames(data_full);
 
@@ -128,6 +132,21 @@ data_full_matched = MatchIt::match.data(match);
 glm_data = data_full_matched;
 t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "female"]);
 
+split_named_list_by_hemi <- function(some_named_list) {
+    lh_list = list();
+    rh_list = list();
+    for(entry in names(some_named_list)) {
+        if(startsWith(entry, 'lh_')) {
+            lh_list[[entry]] = some_named_list[[substring(entry, 3L)]];
+        } else if(startsWith(entry, 'rh_')) {
+            rh_list[[entry]] = some_named_list[[substring(entry, 3L)]];
+        } else {
+            cat(sprintf("Ignoring entry '%s'.\n", entry));
+        }
+    }
+    return(list('lh'=lh_list, 'rh'=rh_list));
+}
+
 region_idx = 1L;
 region_fits = list();
 pvalues_sex = list();
@@ -158,7 +177,8 @@ plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15
 contrast::contrast(fit, list(sex = "-1", age=20), list(sex = "0"), age=20);
 emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
 
+effect_sizes_by_hemi = split_named_list_by_hemi(effect_sizes_sex);
 
-fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_sex, rh_region_value_list = effect_sizes_sex, atlas = "aparc", draw_colorbar = T);
+fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", draw_colorbar = T);
 
 
