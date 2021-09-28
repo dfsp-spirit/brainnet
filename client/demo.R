@@ -8,6 +8,7 @@ library("brainnet");
 library("fsbrain");
 library("kernlab");
 library("readxl");
+library("effects");
 
 
 ##### Load data #####
@@ -51,7 +52,7 @@ considered_atlas_regions = colnames(data_full);
 
 # add demographics data.
 data_full$sex = demographics$`SEX_ID (1=m, 2=f)`
-data_full$sex = data_full$sex - 1.0;
+data_full$sex = as.factor(data_full$sex - 1.0);
 data_full$age = demographics$AGE;
 data_full$height = demographics$HEIGHT;
 
@@ -124,5 +125,6 @@ for(region_name in considered_atlas_regions) {
 }
 
 # Now investigate region_fits and pvalues_sex.
+effects::allEffects(region_fits[[1]]);
 
 
