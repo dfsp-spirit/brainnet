@@ -10,6 +10,7 @@ library("kernlab");
 library("readxl");
 library("effects");
 library("emmeans");
+library("MatchIt");
 
 
 ##### Load data #####
@@ -117,19 +118,27 @@ summary(fit1);
 # check for group differences in age
 t.test(data_full$age[data_full$sex == -1], data_full$age[data_full$sex == 0]);
 
+# match sample to remove difference
+match = MatchIt::matchit(sex ~ age, data = data_full, method = "nearest", distance = "glm");
+data_full_matched = MatchIt::match.data(match);
+
+# make sure it worked out:
+glm_data = data_full_matched;
+t.test(glm_data$age[glm_data$sex == -1], glm_data$age[glm_data$sex == 0]);
+
 region_idx = 1L;
 region_fits = list();
 pvalues_sex = list();
 effect_sizes_sex = list();
 for(region_name in considered_atlas_regions) {
     formula_region = sprintf("%s ~ sex + age", region_name);
-    fit = glm(formula = formula_region, data = data_full, family=gaussian());
+    fit = glm(formula = formula_region, data = glm_data, family=gaussian());
     region_fits[[region_name]] = fit;
     cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
     pvalues_sex[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
 
-    raw_sd_male = sd(data_full[[region_name]][data_full$sex == -1]);
-    raw_sd_female = sd(data_full[[region_name]][data_full$sex == 0]);
+    raw_sd_male = sd(glm_data[[region_name]][glm_data$sex == -1]);
+    raw_sd_female = sd(glm_data[[region_name]][glm_data$sex == 0]);
     raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
     effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
     effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
@@ -148,6 +157,6 @@ contrast::contrast(fit, list(sex = "-1", age=20), list(sex = "0"), age=20);
 emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
 
 
-fsbrain::vis.region.values.on.subject(fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_sex, rh_region_value_list = effect_sizes_sex, atlas = "aparc", draw_colorbar = T);
+fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_sex, rh_region_value_list = effect_sizes_sex, atlas = "aparc", draw_colorbar = T);
 
 
