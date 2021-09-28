@@ -125,6 +125,7 @@ for(region_name in considered_atlas_regions) {
 }
 
 # Now investigate region_fits and pvalues_sex.
+summary(region_fits[[1]]);
 effects::allEffects(region_fits[[1]]);
 
 
