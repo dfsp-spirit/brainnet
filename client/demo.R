@@ -133,4 +133,9 @@ plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15
 contrast::contrast(fit, list(sex = "-1", age=20), list(sex = "0"), age=20);
 emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
 
-
+raw_sd_male = sd(data_full$bankssts[data_full$sex == -1]);
+raw_sd_female = sd(data_full$bankssts[data_full$sex == 0]);
+raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
+effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
+effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
+cohen_d = (effect_sex_male_mean - effect_sex_female_mean) / raw_sd_pooled;
