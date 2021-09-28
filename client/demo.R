@@ -114,6 +114,9 @@ summary(fit1);
 ###### Look at effect of sex for predicting NI data for all regions ############
 ################################################################################
 
+# check for group differences in age
+t.test(data_full$age[data_full$sex == -1], data_full$age[data_full$sex == 0]);
+
 region_idx = 1L;
 region_fits = list();
 pvalues_sex = list();
