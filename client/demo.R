@@ -9,6 +9,7 @@ library("fsbrain");
 library("kernlab");
 library("readxl");
 library("effects");
+library("emmeans");
 
 
 ##### Load data #####
@@ -130,6 +131,6 @@ summary(fit);
 plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
 
 contrast::contrast(fit, list(sex = "-1", age=20), list(sex = "0"), age=20);
-
+emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
 
 
