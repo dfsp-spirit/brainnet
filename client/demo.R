@@ -137,9 +137,9 @@ split_named_list_by_hemi <- function(some_named_list) {
     rh_list = list();
     for(entry in names(some_named_list)) {
         if(startsWith(entry, 'lh_')) {
-            lh_list[[entry]] = some_named_list[[substring(entry, 3L)]];
+            lh_list[[substring(entry, 4L)]] = some_named_list[[entry]];
         } else if(startsWith(entry, 'rh_')) {
-            rh_list[[entry]] = some_named_list[[substring(entry, 3L)]];
+            rh_list[[substring(entry, 4L)]] = some_named_list[[entry]];
         } else {
             cat(sprintf("Ignoring entry '%s'.\n", entry));
         }
