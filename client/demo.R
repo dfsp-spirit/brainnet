@@ -174,8 +174,8 @@ fit = region_fits[[1]];
 summary(fit);
 plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
 
-contrast::contrast(fit, list(sex = "-1", age=20), list(sex = "0"), age=20);
-emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
+#contrast::contrast(fit, list(sex = "male", age=20), list(sex = "female"), age=20);
+#emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
 
 effect_sizes_by_hemi = split_named_list_by_hemi(effect_sizes_sex);
 
