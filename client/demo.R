@@ -51,7 +51,7 @@ data_full$corpuscallosum = NULL;
 considered_atlas_regions = colnames(data_full);
 
 # add demographics data.
-data_full$sex = demographics$`SEX_ID (1=m, 2=f)`
+data_full$sex = demographics$`SEX_ID (1=m, 2=f)`;
 data_full$sex = as.factor(data_full$sex - 1.0);
 data_full$age = demographics$AGE;
 data_full$height = demographics$HEIGHT;
@@ -125,7 +125,11 @@ for(region_name in considered_atlas_regions) {
 }
 
 # Now investigate region_fits and pvalues_sex.
-summary(region_fits[[1]]);
-effects::allEffects(region_fits[[1]]);
+fit = region_fits[[1]];
+summary(fit);
+plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
+
+contrast::contrast(fit, list(sex = "-1", age=20), list(sex = "0"), age=20);
+
 
 
