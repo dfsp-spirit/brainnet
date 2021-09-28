@@ -54,7 +54,9 @@ considered_atlas_regions = colnames(data_full);
 
 # add demographics data.
 data_full$sex = demographics$`SEX_ID (1=m, 2=f)`;
-data_full$sex = as.factor(data_full$sex - 1.0);
+data_full$sex = rep("male", length(data_full$sex));
+data_full$sex[demographics$`SEX_ID (1=m, 2=f)`==2] = "female";
+data_full$sex = as.factor(data_full$sex);
 data_full$age = demographics$AGE;
 data_full$height = demographics$HEIGHT;
 
@@ -116,7 +118,7 @@ summary(fit1);
 ################################################################################
 
 # check for group differences in age
-t.test(data_full$age[data_full$sex == -1], data_full$age[data_full$sex == 0]);
+t.test(data_full$age[data_full$sex == "male"], data_full$age[data_full$sex == "female"]);
 
 # match sample to remove difference
 match = MatchIt::matchit(sex ~ age, data = data_full, method = "nearest", distance = "glm");
@@ -124,7 +126,7 @@ data_full_matched = MatchIt::match.data(match);
 
 # make sure it worked out:
 glm_data = data_full_matched;
-t.test(glm_data$age[glm_data$sex == -1], glm_data$age[glm_data$sex == 0]);
+t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "female"]);
 
 region_idx = 1L;
 region_fits = list();
@@ -137,8 +139,8 @@ for(region_name in considered_atlas_regions) {
     cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
     pvalues_sex[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
 
-    raw_sd_male = sd(glm_data[[region_name]][glm_data$sex == -1]);
-    raw_sd_female = sd(glm_data[[region_name]][glm_data$sex == 0]);
+    raw_sd_male = sd(glm_data[[region_name]][glm_data$sex == "male"]);
+    raw_sd_female = sd(glm_data[[region_name]][glm_data$sex == "female"]);
     raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
     effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
     effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
