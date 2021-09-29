@@ -14,7 +14,9 @@ library("MatchIt");
 library("ggplot2");
 
 
-##### Load data #####
+################################################################################
+########################## Load data and demographics ##########################
+################################################################################
 
 measure = "thickness";
 
@@ -42,8 +44,6 @@ subjects_training_row_indices = which(demographics$subject_data_dirname %in% sub
 fsbrain:::check.subjectslist(subjects_training, subjects_dir = subjects_dir, report_name = "subjects_training");
 sex_training = demographics$`SEX_ID (1=m, 2=f)`[subjects_training_row_indices];
 
-
-##### Train and evaluate model #####
 
 
 data_full = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure, hemi="split", atlas="aparc");
@@ -190,5 +190,4 @@ plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15
 effect_sizes_by_hemi = split_named_list_by_hemi(effect_sizes_sex);
 
 fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", draw_colorbar = T);
-
 
