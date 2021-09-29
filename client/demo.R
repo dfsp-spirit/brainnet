@@ -124,6 +124,9 @@ ggplot2::ggplot(classfication_glm, ggplot2::aes(x,y)) + ggplot2::geom_point(ggpl
     ggplot2::geom_vline(xintercept=c(0.5), linetype="longdash");
 summary(fit1);
 
+## We could also split data into train and test data and predict the test data using the GLM:
+##preds <- predict(fit1, newdat=data_training, type="response");
+
 
 
 ##### Add neuroimaging data for all atlas regions:
