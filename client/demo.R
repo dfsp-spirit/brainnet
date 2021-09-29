@@ -11,6 +11,7 @@ library("readxl");
 library("effects");
 library("emmeans");
 library("MatchIt");
+library("ggplot2");
 
 
 ##### Load data #####
@@ -108,7 +109,11 @@ brainnet::evaluate_model(actual = sex_testing, predicted =  res);
 
 ##### No neuroimaging data: predict based on age + height only:
 fit1 <- glm(formula = sex ~ age + height, data = data_full, family=binomial(link='logit'));
+classfication_glm = data.frame('x'=fit1$fitted.values, 'y'=seq(length(fit1$fitted.values)), 'group'=data_full$sex);
+ggplot2::ggplot(classfication_glm, aes(x,y)) + ggplot2::geom_point(aes(colour = group)) + ggplot2::labs(title = "Classification results using logistic regression", x = "Classification result", y = "Subject ID", color = "True group\n");
 summary(fit1);
+
+
 
 ##### Add neuroimaging data for all atlas regions:
 fit2 <- glm(formula = sex ~ ., data = data_full, family=binomial(link='logit'));
