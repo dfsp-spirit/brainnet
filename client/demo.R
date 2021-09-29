@@ -28,10 +28,16 @@ if(brainnet:::get_os() == "linux") {
 } else {
     study_dir = "/Volumes/shared/projects/IXI_dataset";
 }
+
+if(dir.exists("~/data/IXI_min")) {
+    study_dir = "~/data/IXI_min"; # use local minimal data dir if available, loading from a local SSD is much faster than loading via LAN from the NAS.
+}
+
 subjects_dir = file.path(study_dir, "mri/freesurfer"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 demographics_file = system.file("extdata", "IXI_demographics_filtered_fixed.xlsx", package = "brainnet", mustWork = TRUE);
 demographics = readxl::read_excel(demographics_file);
 
+cat(sprintf("Loading FreeSurfer data from SUBJECTS_DIR '%s'.\n", subjects_dir ));
 
 subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
 
