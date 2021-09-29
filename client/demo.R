@@ -5,13 +5,14 @@
 # Written by Tim Schäfer, 2021-09-10
 
 library("brainnet");
-library("fsbrain");
-library("kernlab");
-library("readxl");
-library("effects");
-library("emmeans");
-library("MatchIt");
-library("ggplot2");
+library("fsbrain");   # loading neuroimaging data and visualizing results
+library("kernlab");   # Gaussian process classificaiton
+library("readxl");    # read Excel demographcis file
+library("effects");   # GLM effects
+library("emmeans");   # GLM effects
+library("MatchIt");   # matching of patient/control groups
+library("ggplot2");   # general purpose plots
+library("rsq");       # to compute R squared of a GLM
 
 
 ################################################################################
@@ -123,6 +124,9 @@ ggplot2::ggplot(classfication_glm, ggplot2::aes(x,y)) + ggplot2::geom_point(ggpl
     ggplot2::labs(title = "Classification results using logistic regression", x = "Classification result", y = "Subject ID", color = "True group\n") +
     ggplot2::geom_vline(xintercept=c(0.5), linetype="longdash");
 summary(fit1);
+
+## Compute the R squared value for the model.
+cat(sprintf("The R squared value for the GLM is '%f'.\n", rsq::rsq(fit1)));
 
 ## We could also split data into train and test data and predict the test data using the GLM:
 ##preds <- predict(fit1, newdat=data_training, type="response");
