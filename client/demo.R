@@ -156,6 +156,9 @@ data_full_matched = MatchIt::match.data(match);
 glm_data = data_full_matched;
 t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "female"]);
 
+
+# This function splits a named list with keys starting with 'lh_' and 'rh_' into two lists. The prefixes 'lh_' and 'rh_' get stripped, and the entries placed in the respective new list.
+# @return: The two separate lists are returned in a single named list, with keys 'lh' and 'rh' for the inner lists.
 split_named_list_by_hemi <- function(some_named_list) {
     lh_list = list();
     rh_list = list();
