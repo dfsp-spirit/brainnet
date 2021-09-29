@@ -126,7 +126,7 @@ ggplot2::ggplot(classfication_glm, ggplot2::aes(x,y)) + ggplot2::geom_point(ggpl
 summary(fit1);
 
 ## Compute the R squared value for the model.
-cat(sprintf("The R squared value for the GLM is '%f'.\n", rsq::rsq(fit1)));
+cat(sprintf("The R squared value for the GLM predicting sex using a logistic link function without NI data is '%f'.\n", rsq::rsq(fit1)));
 
 ## We could also split data into train and test data and predict the test data using the GLM:
 ##preds <- predict(fit1, newdat=data_training, type="response");
@@ -136,6 +136,7 @@ cat(sprintf("The R squared value for the GLM is '%f'.\n", rsq::rsq(fit1)));
 ##### Add neuroimaging data for all atlas regions:
 fit2 <- glm(formula = sex ~ ., data = data_full, family=binomial(link='logit'));
 summary(fit1);
+cat(sprintf("The R squared value for the GLM predicting sex using a logistic link function with NI data is '%f'.\n", rsq::rsq(fit2)));
 
 ## Look at the AIC values in the output (keep in mind that lower AIC sores are better.)
 
