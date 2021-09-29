@@ -14,6 +14,7 @@ library("MatchIt");   # matching of patient/control groups
 library("ggplot2");   # general purpose plots
 library("rsq");       # to compute R squared of a GLM
 
+#library("sva"); # batch correction using ComBat. To install: install.packages("BiocManager"); BiocManager::install("sva");
 
 ################################################################################
 ########################## Load data and demographics ##########################
