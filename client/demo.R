@@ -115,11 +115,12 @@ data_full$rh_corpuscallosum = NULL;
 considered_atlas_regions = colnames(data_full);
 
 # add demographics data.
-data_full$sex = demographics$sex;
-data_full$age = demographics$AGE;
-data_full$height = demographics$HEIGHT;
+data_full_dem = data_full;
+data_full_dem$sex = demographics$sex;
+data_full_dem$age = demographics$AGE;
+data_full_dem$height = demographics$HEIGHT;
 
-data_training = data_full[subjects_training_row_indices, ];
+data_training = data_full_dem[subjects_training_row_indices, ];
 
 
 #data_training = fsbrain::group.morph.standard(subjects_dir, subjects_training, measure, fwhm = "10", df_t = TRUE);
@@ -145,7 +146,7 @@ subjects_testing = subjects_list[first_idx_testing:last_idx_testing];
 subjects_testing_row_indices = which(demographics$subject_data_dirname %in% subjects_testing);
 fsbrain:::check.subjectslist(subjects_testing, subjects_dir = subjects_dir, report_name = "subjects_testing");
 
-data_testing = data_full[subjects_testing_row_indices, ];
+data_testing = data_full_dem[subjects_testing_row_indices, ];
 sex_testing = data_testing$sex;
 
 cat(sprintf("Trained on %d subjects, tested on %d.\n", length(subjects_training), length(subjects_testing)));
@@ -165,8 +166,8 @@ ggplot2::ggplot(classfication_gp, ggplot2::aes(x,y)) + ggplot2::geom_point(ggplo
 ##### Model comparison: with and without the neuroimaging data
 
 ##### No neuroimaging data: predict based on age + height only:
-fit1 <- glm(formula = sex ~ age + height, data = data_full, family=binomial(link='logit'));
-classfication_glm = data.frame('x'=fit1$fitted.values, 'y'=seq(length(fit1$fitted.values)), 'group'=data_full$sex, 'age'=data_full$age);
+fit1 <- glm(formula = sex ~ age + height, data = data_full_dem, family=binomial(link='logit'));
+classfication_glm = data.frame('x'=fit1$fitted.values, 'y'=seq(length(fit1$fitted.values)), 'group'=data_full_dem$sex, 'age'=data_full_dem$age);
 ggplot2::ggplot(classfication_glm, ggplot2::aes(x,y)) + ggplot2::geom_point(ggplot2::aes(colour = group)) +
     ggplot2::labs(title = "Classification results using logistic regression", x = "Classification result", y = "Subject ID", color = "True group\n") +
     ggplot2::geom_vline(xintercept=c(0.5), linetype="longdash");
@@ -181,7 +182,7 @@ cat(sprintf("The R squared value for the GLM predicting sex using a logistic lin
 
 
 ##### Add neuroimaging data for all atlas regions:
-fit2 <- glm(formula = sex ~ ., data = data_full, family=binomial(link='logit'));
+fit2 <- glm(formula = sex ~ ., data = data_full_dem, family=binomial(link='logit'));
 summary(fit2);
 cat(sprintf("The R squared value for the GLM predicting sex using a logistic link function with NI data is '%f'.\n", rsq::rsq(fit2)));
 
@@ -193,10 +194,10 @@ cat(sprintf("The R squared value for the GLM predicting sex using a logistic lin
 ################################################################################
 
 # check for group differences in age
-t.test(data_full$age[data_full$sex == "male"], data_full$age[data_full$sex == "female"]);
+t.test(data_full_dem$age[data_full_dem$sex == "male"], data_full_dem$age[data_full_dem$sex == "female"]);
 
 # match sample to remove difference
-match = MatchIt::matchit(sex ~ age, data = data_full, method = "nearest", distance = "glm");
+match = MatchIt::matchit(sex ~ age, data = data_full_dem, method = "nearest", distance = "glm");
 data_full_matched = MatchIt::match.data(match);
 
 # make sure it worked out:
@@ -209,10 +210,10 @@ region_fits = list();
 pvalues_sex = list();
 effect_sizes_sex = list();
 for(region_name in considered_atlas_regions) {
+    cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
     formula_region = sprintf("%s ~ sex + age", region_name);
     fit = glm(formula = formula_region, data = glm_data, family=gaussian());
     region_fits[[region_name]] = fit;
-    cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
     pvalues_sex[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
 
     raw_sd_male = sd(glm_data[[region_name]][glm_data$sex == "male"]);
