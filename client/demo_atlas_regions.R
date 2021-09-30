@@ -193,29 +193,3 @@ plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15
 
 effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_sex); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", draw_colorbar = T);
-
-################################################################################
-################### Look at vertex-wise effect of sex  #########################
-################################################################################
-
-region_idx = 1L;
-region_fits = list();
-pvalues_sex = list();
-effect_sizes_sex = list();
-for(region_name in considered_atlas_regions) {
-    cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
-    formula_region = sprintf("%s ~ sex + age", region_name);
-    fit = glm(formula = formula_region, data = glm_data, family=gaussian());
-    region_fits[[region_name]] = fit;
-    pvalues_sex[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
-
-    raw_sd_male = sd(glm_data[[region_name]][glm_data$sex == "male"]);
-    raw_sd_female = sd(glm_data[[region_name]][glm_data$sex == "female"]);
-    raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
-    effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
-    effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
-    cohen_d = (effect_sex_male_mean - effect_sex_female_mean) / raw_sd_pooled;
-    effect_sizes_sex[[region_name]] = abs(cohen_d); # we are not interested in direction for effect size.
-
-    region_idx = region_idx + 1L;
-}
