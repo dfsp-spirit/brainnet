@@ -204,32 +204,6 @@ glm_data = data_full_matched;
 t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "female"]);
 
 
-# This function splits a named list with keys starting with 'lh_' and 'rh_' into two lists. The prefixes 'lh_' and 'rh_' get stripped, and the entries placed in the respective new list.
-# @return: The two separate lists are returned in a single named list, with keys 'lh' and 'rh' for the inner lists.
-split_named_list_by_hemi <- function(some_named_list,  report_ignored=TRUE, return_ignored=FALSE) {
-    lh_list = list();
-    rh_list = list();
-    ignored = list();
-    for(entry in names(some_named_list)) {
-        if(startsWith(entry, 'lh_')) {
-            lh_list[[substring(entry, 4L)]] = some_named_list[[entry]];
-        } else if(startsWith(entry, 'rh_')) {
-            rh_list[[substring(entry, 4L)]] = some_named_list[[entry]];
-        } else {
-            ignored[[entry]] = some_named_list[[entry]];
-        }
-    }
-    if(report_ignored) {
-        message(sprintf("Ignoring %d entries that do not start with 'lh_' or 'rh_': ''.\n", length(ignored), paste(ignored, sep=", ")));
-    }
-    res = list('lh'=lh_list, 'rh'=rh_list);
-    if(return_ignored) {
-        res$ignored = ignored;
-    }
-    return(res);
-}
-
-
 region_idx = 1L;
 region_fits = list();
 pvalues_sex = list();
@@ -260,6 +234,6 @@ plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15
 #contrast::contrast(fit, list(sex = "male", age=20), list(sex = "female"), age=20);
 #emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
 
-effect_sizes_by_hemi = split_named_list_by_hemi(effect_sizes_sex); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
+effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_sex); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", draw_colorbar = T);
 
