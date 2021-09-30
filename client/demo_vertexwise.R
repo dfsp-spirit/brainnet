@@ -99,6 +99,14 @@ for(vertex_colname in considered_vertexcolnames) {
     vertex_idx = vertex_idx + 1L;
 }
 
+#### Visualize results #####
+
 
 fsbrain::vis.data.on.fsaverage(morph_data_both = effect_sizes_sex, draw_colorbar = T);
 
+
+
+##### Use fastglm instead #####
+
+## here we test for a single vertex
+#fastglm::fastglm(x=data_full$V1, y=)
