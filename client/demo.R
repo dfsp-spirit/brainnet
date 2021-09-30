@@ -35,58 +35,10 @@ if(dir.exists("~/data/IXI_min")) {
     study_dir = "~/data/IXI_min"; # use local minimal data dir if available, loading from a local SSD is much faster than loading via LAN from the NAS.
 }
 
-postproc_demographics <- function(demographics) {
-    demographics$DOB = as.Date(demographics$DOB, format="%Y-%m-%d");
-    demographics$STUDY_DATE = as.Date(demographics$STUDY_DATE, format="%Y-%m-%d");
-    demographics$DATE_AVAILABLE = NULL; # Delete useless column, the date column would be NA for such dates.
-
-    # Compute scanner site column
-    list_of_token_vectors = strsplit(demographics$subject_data_dirname, split="-"); # Each entry is split into 3 parts, which look like this:  "IXI639" "Guys"   "1088". The 2nd one ("Guys" here) is the site we are interested in.
-    nr = nrow(demographics);
-    sites = rep("?", nr);
-    for(row_idx in seq.int(nr)) {
-        sites[row_idx] = list_of_token_vectors[[row_idx]][2];
-    }
-    demographics$site = as.factor(sites);
-
-    # Remap sex columns
-    demographics$sex = as.factor(demographics$`SEX_ID (1=m, 2=f)`);
-    levels(demographics$sex) = list("male"="1", "female"="2");
-
-    # Remap and clean the ID columns: ETHNIC_ID
-    demographics$ethnic = as.factor(demographics$ETHNIC_ID);
-    levels(demographics$ethnic) = list("white"="1", "asian_br"="3", "black_br"="4", "chinese"="5", "other"="6");
-    demographics$ethnic[which(is.na(demographics$ethnic))] = "other"; # Fix those with ID 2, which is missing from the legend. It is unknown what it is supposed to mean so we set it to "other".
-
-    # Remap and clean the ID columns: MARITAL_ID
-    demographics$marital = as.factor(demographics$MARITAL_ID);
-    levels(demographics$marital) = list("single"="1", "married"="2", "cohabiting"="3", "divorced_sep"="4", "widowed"="5");
-
-    # Remap and clean the ID columns: OCCUPATION_ID
-    demographics$occupation = as.factor(demographics$OCCUPATION_ID);
-    levels(demographics$occupation) = list("out_fulltime"="1", "out_parttime"="2", "study"="3", "fulltime_housework"="4", "retired"="5", "unemployed"="6", "work_at_home"=7, "other"=8);
-
-    # Remap and clean the ID columns: QUALIFICATION_ID. This one seems to have an ordering, so we split into an integer column for the value and add a convenience columns that contains the description string.
-    demographics$qualification = as.integer(demographics$QUALIFICATION_ID);
-    demographics$qualification_desc = as.factor(demographics$QUALIFICATION_ID);
-    levels(demographics$qualification_desc) = list("none"="1", "O-levels"="2", "A-levels"="3", "further_edu"="4", "university"="5");
-
-    # Delete the unused fields.
-    demographics$`SEX_ID (1=m, 2=f)` = NULL;
-    demographics$ETHNIC_ID = NULL;
-    demographics$MARITAL_ID = NULL;
-    demographics$OCCUPATION_ID = NULL;
-    demographics$QUALIFICATION_ID = NULL;
-    demographics$subject_id_padded = NULL;
-
-    return(demographics);
-}
-
-
 subjects_dir = file.path(study_dir, "mri/freesurfer"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 demographics_file = system.file("extdata", "IXI_demographics_filtered_fixed.xlsx", package = "brainnet", mustWork = TRUE);
 demographics = readxl::read_excel(demographics_file);
-demographics = postproc_demographics(demographics);
+demographics = brainnet::postproc_IXI_demographics(demographics);
 
 cat(sprintf("Loading FreeSurfer data from SUBJECTS_DIR '%s'.\n", subjects_dir ));
 
@@ -190,7 +142,7 @@ cat(sprintf("The R squared value for the GLM predicting sex using a logistic lin
 
 
 ################################################################################
-###### Look at effect of sex for predicting NI data for all regions ############
+############################## Match groups ####################################
 ################################################################################
 
 # check for group differences in age
@@ -204,6 +156,10 @@ data_full_matched = MatchIt::match.data(match);
 glm_data = data_full_matched;
 t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "female"]);
 
+
+################################################################################
+###### Look at effect of sex for predicting NI data for atlas regions ##########
+################################################################################
 
 region_idx = 1L;
 region_fits = list();
@@ -238,3 +194,28 @@ plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15
 effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_sex); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", draw_colorbar = T);
 
+################################################################################
+################### Look at vertex-wise effect of sex  #########################
+################################################################################
+
+region_idx = 1L;
+region_fits = list();
+pvalues_sex = list();
+effect_sizes_sex = list();
+for(region_name in considered_atlas_regions) {
+    cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
+    formula_region = sprintf("%s ~ sex + age", region_name);
+    fit = glm(formula = formula_region, data = glm_data, family=gaussian());
+    region_fits[[region_name]] = fit;
+    pvalues_sex[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
+
+    raw_sd_male = sd(glm_data[[region_name]][glm_data$sex == "male"]);
+    raw_sd_female = sd(glm_data[[region_name]][glm_data$sex == "female"]);
+    raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
+    effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
+    effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
+    cohen_d = (effect_sex_male_mean - effect_sex_female_mean) / raw_sd_pooled;
+    effect_sizes_sex[[region_name]] = abs(cohen_d); # we are not interested in direction for effect size.
+
+    region_idx = region_idx + 1L;
+}
