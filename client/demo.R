@@ -99,7 +99,7 @@ num_subjects_training = 400L;
 subjects_training = subjects_list[1:num_subjects_training];
 subjects_training_row_indices = which(demographics$subject_data_dirname %in% subjects_training);
 fsbrain:::check.subjectslist(subjects_training, subjects_dir = subjects_dir, report_name = "subjects_training");
-sex_training = demographics$`SEX_ID (1=m, 2=f)`[subjects_training_row_indices];
+sex_training = demographics$sex[subjects_training_row_indices];
 
 
 
@@ -182,7 +182,7 @@ cat(sprintf("The R squared value for the GLM predicting sex using a logistic lin
 
 ##### Add neuroimaging data for all atlas regions:
 fit2 <- glm(formula = sex ~ ., data = data_full, family=binomial(link='logit'));
-summary(fit1);
+summary(fit2);
 cat(sprintf("The R squared value for the GLM predicting sex using a logistic link function with NI data is '%f'.\n", rsq::rsq(fit2)));
 
 ## Look at the AIC values in the output (keep in mind that lower AIC sores are better.)
@@ -206,20 +206,29 @@ t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "femal
 
 # This function splits a named list with keys starting with 'lh_' and 'rh_' into two lists. The prefixes 'lh_' and 'rh_' get stripped, and the entries placed in the respective new list.
 # @return: The two separate lists are returned in a single named list, with keys 'lh' and 'rh' for the inner lists.
-split_named_list_by_hemi <- function(some_named_list) {
+split_named_list_by_hemi <- function(some_named_list,  report_ignored=TRUE, return_ignored=FALSE) {
     lh_list = list();
     rh_list = list();
+    ignored = list();
     for(entry in names(some_named_list)) {
         if(startsWith(entry, 'lh_')) {
             lh_list[[substring(entry, 4L)]] = some_named_list[[entry]];
         } else if(startsWith(entry, 'rh_')) {
             rh_list[[substring(entry, 4L)]] = some_named_list[[entry]];
         } else {
-            cat(sprintf("Ignoring entry '%s': does not start with 'lh_' or 'rh_'.\n", entry));
+            ignored[[entry]] = some_named_list[[entry]];
         }
     }
-    return(list('lh'=lh_list, 'rh'=rh_list));
+    if(report_ignored) {
+        message(sprintf("Ignoring %d entries that do not start with 'lh_' or 'rh_': ''.\n", length(ignored), paste(ignored, sep=", ")));
+    }
+    res = list('lh'=lh_list, 'rh'=rh_list);
+    if(return_ignored) {
+        res$ignored = ignored;
+    }
+    return(res);
 }
+
 
 region_idx = 1L;
 region_fits = list();
@@ -244,7 +253,7 @@ for(region_name in considered_atlas_regions) {
 }
 
 # Now investigate region_fits and pvalues_sex.
-fit = region_fits[[1]];
+fit = region_fits$lh_bankssts;
 summary(fit);
 plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
 
