@@ -49,6 +49,10 @@ postproc_demographics <- function(demographics) {
     }
     demographics$site = as.factor(sites);
 
+    # Remap sex columns
+    demographics$sex = as.factor(demographics$`SEX_ID (1=m, 2=f)`);
+    levels(demographics$sex) = list("male"="1", "female"="2");
+
     # Remap and clean the ID columns: ETHNIC_ID
     demographics$ethnic = as.factor(demographics$ETHNIC_ID);
     levels(demographics$ethnic) = list("white"="1", "asian_br"="3", "black_br"="4", "chinese"="5", "other"="6");
@@ -68,10 +72,12 @@ postproc_demographics <- function(demographics) {
     levels(demographics$qualification_desc) = list("none"="1", "O-levels"="2", "A-levels"="3", "further_edu"="4", "university"="5");
 
     # Delete the unused fields.
+    demographics$`SEX_ID (1=m, 2=f)` = NULL;
     demographics$ETHNIC_ID = NULL;
     demographics$MARITAL_ID = NULL;
     demographics$OCCUPATION_ID = NULL;
     demographics$QUALIFICATION_ID = NULL;
+    demographics$subject_id_padded = NULL;
 
     return(demographics);
 }
@@ -109,10 +115,7 @@ data_full$rh_corpuscallosum = NULL;
 considered_atlas_regions = colnames(data_full);
 
 # add demographics data.
-data_full$sex = demographics$`SEX_ID (1=m, 2=f)`;
-data_full$sex = rep("male", length(data_full$sex));
-data_full$sex[demographics$`SEX_ID (1=m, 2=f)`==2] = "female";
-data_full$sex = as.factor(data_full$sex);
+data_full$sex = demographics$sex;
 data_full$age = demographics$AGE;
 data_full$height = demographics$HEIGHT;
 
