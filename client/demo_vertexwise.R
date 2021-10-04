@@ -113,15 +113,16 @@ fsbrain::vis.data.on.fsaverage(morph_data_both = effect_sizes_sex, draw_colorbar
 #ffit = fastglm::fastglm(x=as.matrix(data_full$V1), y=as.integer(data_full_dem$sex));#
 
 
-##### Use QDECR instead
-
-
+##### Use QDECR instead. It does not support interaction though, so its use seems limited.
+##### It seems it uses RcppEigen::fastLm internally, and that may (?) support interactions, gotta double-check.
+demographics$age = demographics$AGE; # rename only
+demographics$subject_id = demographics$subject_data_dirname;
 fitqd <- QDECR::qdecr_fastlm(qdecr_thickness ~ age + sex,
-                           data = glm_data, # I think it only want the demographics here and loads the NI data itself.
+                           data = demographics, # I think it only want the demographics here and loads the NI data itself.
                            id = "subject_id",
                            hemi = "lh",
                            project = "test_project",
-                           dir_tmp = "/dev/shm",
+                           dir_tmp = "/dev/shm/",
                            dir_subj = subjects_dir,
                            dir_fshome = "~/software/freesurfer",
                            n_cores=40,
