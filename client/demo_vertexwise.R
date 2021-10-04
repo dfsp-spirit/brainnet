@@ -52,6 +52,7 @@ data_full_dem = data_full;
 data_full_dem$sex = demographics$sex;
 data_full_dem$age = demographics$AGE;
 data_full_dem$height = demographics$HEIGHT;
+data_full_dem$subject_id = demographics$subject_data_dirname;
 
 
 ################################################################################
@@ -109,4 +110,21 @@ fsbrain::vis.data.on.fsaverage(morph_data_both = effect_sizes_sex, draw_colorbar
 ##### Use fastglm instead #####
 
 ## here we test for a single vertex
-#fastglm::fastglm(x=data_full$V1, y=)
+#ffit = fastglm::fastglm(x=as.matrix(data_full$V1), y=as.integer(data_full_dem$sex));#
+
+
+##### Use QDECR instead
+
+
+fitqd <- QDECR::qdecr_fastlm(qdecr_thickness ~ age + sex,
+                           data = glm_data, # I think it only want the demographics here and loads the NI data itself.
+                           id = "subject_id",
+                           hemi = "lh",
+                           project = "test_project",
+                           dir_tmp = "/dev/shm",
+                           dir_subj = subjects_dir,
+                           dir_fshome = "~/software/freesurfer",
+                           n_cores=40,
+                           clobber = TRUE);
+
+
