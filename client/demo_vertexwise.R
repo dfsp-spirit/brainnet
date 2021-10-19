@@ -79,8 +79,9 @@ t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "femal
 
 num_verts = length(considered_vertexcolnames);
 
-options("mc.cores" = 44L);
-num_cores = getOption("mc.cores", default = 2L);
+num_cores = 44L;
+options("mc.cores" = num_cores);
+
 
 
 fit_model_effect_size <- function(vertex_idx) {
@@ -97,8 +98,15 @@ fit_model_effect_size <- function(vertex_idx) {
 }
 
 
+cat(sprintf("Starting model fitting with %d cores at:\n", num_cores));
+print(Sys.time());
 
 res_list_effect_sizes_sex = parallel::mclapply( 1L:num_verts, mc.cores = num_cores, fit_model_effect_size );
+
+cat(sprintf("Model fitting with %d cores done at:\n", num_cores));
+print(Sys.time());
+
+
 effect_sizes_sex = unlist(res_list_effect_sizes_sex);
 effect_sizes_file = "~/effects.mgh"
 freesurferformats::write.fs.morph(effect_sizes_file, effect_sizes_sex);
