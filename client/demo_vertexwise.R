@@ -79,7 +79,7 @@ t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "femal
 
 num_verts = length(considered_vertexcolnames);
 
-options("mc.cores" = 12L);
+options("mc.cores" = 24L);
 num_cores = getOption("mc.cores", default = 2L);
 
 
