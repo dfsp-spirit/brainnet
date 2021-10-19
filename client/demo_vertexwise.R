@@ -13,6 +13,7 @@ library("emmeans");   # GLM effects
 library("MatchIt");   # matching of patient/control groups
 library("ggplot2");   # general purpose plots
 library("rsq");       # to compute R squared of a GLM
+library("parallel");  # run stuff in parallel on several CPU cores.
 
 #library("sva"); # batch correction using ComBat. To install: install.packages("BiocManager"); BiocManager::install("sva");
 
@@ -78,26 +79,51 @@ t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "femal
 
 num_verts = length(considered_vertexcolnames);
 
-vertex_idx = 1L;
-vertex_fits = list();
-pvalues_sex = rep(NA, num_verts);
-effect_sizes_sex = rep(NA, num_verts);
-for(vertex_colname in considered_vertexcolnames) {
-    cat(sprintf("### Handling vertex '%s' (%d of %d). ###\n", vertex_colname, vertex_idx, length(considered_vertexcolnames)));
+options("mc.cores" = 12L);
+num_cores = getOption("mc.cores", default = 2L);
+
+
+fit_model_effect_size <- function(vertex_idx) {
+    vertex_colname = considered_vertexcolnames[vertex_idx];
     formula_vertex = sprintf("%s ~ sex + age", vertex_colname);
     fit = glm(formula = formula_vertex, data = glm_data, family=gaussian());
-    vertex_fits[[vertex_colname]] = fit;
-    pvalues_sex[vertex_idx] = unname(coef(summary.glm(vertex_fits[[vertex_colname]]))[2,4]);
-
     raw_sd_male = sd(glm_data[[vertex_colname]][glm_data$sex == "male"]);
     raw_sd_female = sd(glm_data[[vertex_colname]][glm_data$sex == "female"]);
     raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
     effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
     effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
     cohen_d = (effect_sex_male_mean - effect_sex_female_mean) / raw_sd_pooled;
-    effect_sizes_sex[vertex_idx] = abs(cohen_d); # we are not interested in direction for effect size.
+    return(abs(cohen_d));
+}
 
-    vertex_idx = vertex_idx + 1L;
+
+
+res_list_effect_sizes_sex = parallel::mclapply( 1L:num_verts, mc.cores = num_cores, fit_model_effect_size );
+effect_sizes_sex = unlist(res_list_effect_sizes_sex);
+
+do_run_sequential_version = FALSE;
+if(do_run_sequential_version) {
+    vertex_idx = 1L;
+    vertex_fits = list();
+    pvalues_sex = rep(NA, num_verts);
+    effect_sizes_sex = rep(NA, num_verts);
+    for(vertex_colname in considered_vertexcolnames) {
+        cat(sprintf("### Handling vertex '%s' (%d of %d). ###\n", vertex_colname, vertex_idx, length(considered_vertexcolnames)));
+        formula_vertex = sprintf("%s ~ sex + age", vertex_colname);
+        fit = glm(formula = formula_vertex, data = glm_data, family=gaussian());
+        vertex_fits[[vertex_colname]] = fit;
+        pvalues_sex[vertex_idx] = unname(coef(summary.glm(vertex_fits[[vertex_colname]]))[2,4]);
+
+        raw_sd_male = sd(glm_data[[vertex_colname]][glm_data$sex == "male"]);
+        raw_sd_female = sd(glm_data[[vertex_colname]][glm_data$sex == "female"]);
+        raw_sd_pooled = sqrt((raw_sd_male * raw_sd_male + raw_sd_female + raw_sd_female) / 2.0);
+        effect_sex_male_mean = effects::effect("sex", fit)$fit[1];
+        effect_sex_female_mean = effects::effect("sex", fit)$fit[2];
+        cohen_d = (effect_sex_male_mean - effect_sex_female_mean) / raw_sd_pooled;
+        effect_sizes_sex[vertex_idx] = abs(cohen_d); # we are not interested in direction for effect size.
+
+        vertex_idx = vertex_idx + 1L;
+    }
 }
 
 #### Visualize results #####
