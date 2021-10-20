@@ -78,12 +78,15 @@ t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "femal
 ###### Look at effect of sex for predicting NI data for atlas regions ##########
 ################################################################################
 
-num_verts = length(considered_vertexcolnames);
+
+num_columns = length(considered_vertexcolnames);
+num_metadata_columns_at_end = 7L; # Columns for group, sex, age, ...
+num_verts = length(considered_vertexcolnames) - num_metadata_columns_at_end;
 
 num_cores = 44L;
 options("mc.cores" = num_cores);
 
-chunk_size = num_cores * 10L;
+chunk_size = num_cores * 1000L;
 vert_indices = 1L:num_verts;
 chunks = split(vert_indices, ceiling(seq_along(vert_indices)/chunk_size));
 
@@ -96,6 +99,10 @@ all_chunks_effect_sizes = c();
 for(chunk_idx in seq_along(chunks)) {
 
   vertex_indices_of_this_chunk = chunks[[chunk_idx]];
+
+  # Add the meta data columns (age, sex, ...) from the end. They are required for the GLM.
+  vertex_indices_of_this_chunk = c(vertex_indices_of_this_chunk, seq(num_columns-num_metadata_columns_at_end+1L, num_columns))
+
   glm_data_chunk = glm_data[, vertex_indices_of_this_chunk]; # Matrix with dim: num_subjects x chunk_size
 
   fit_model_effect_size <- function(vertex_idx) {
@@ -113,7 +120,7 @@ for(chunk_idx in seq_along(chunks)) {
 
   cat(sprintf(" * Starting model fitting for chunk %d of %d (chunk size: %d) with %d cores at:\n", chunk_idx, length(chunks), chunk_size, num_cores));
   print(Sys.time());
-  cat(sprintf("    - Data size for this chunk is: %d subjects x %d vertices.\n", dim(glm_data_chunk)[1], dim(glm_data_chunk)[2]));
+  cat(sprintf("    - Data size for this chunk is: %d subjects x %d vertices (verts include %d metadata columns).\n", dim(glm_data_chunk)[1], dim(glm_data_chunk)[2], num_metadata_columns_at_end));
 
 
   res_list_effect_sizes_this_chunk = bettermc::mclapply( 1L:num_verts, fit_model_effect_size, mc.cores = num_cores, mc.progress = TRUE );
