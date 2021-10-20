@@ -86,7 +86,15 @@ num_verts = length(considered_vertexcolnames) - num_metadata_columns_at_end;
 num_cores = 44L;
 options("mc.cores" = num_cores);
 
+# IMPORTANT:
+# The 'chunk_size' setting below is absolutely critical for the performance! Set to high, your system will run out of
+# memory and start swapping to disk, which means it will be ORDER OF MAGNITUDE slower. Setting it too low is a massive
+# waste of CPU resources (cores idling). The correct setting depends on the number of cores and RAM of your machine.
+# Use proper system monitoring tools (like 'atop' under Linux) that show you when bottlenecks occur, and keep the settings
+# just below the value at which they first show up.
 chunk_size = num_cores * 1000L;
+
+
 vert_indices = 1L:num_verts;
 chunks = split(vert_indices, ceiling(seq_along(vert_indices)/chunk_size));
 
