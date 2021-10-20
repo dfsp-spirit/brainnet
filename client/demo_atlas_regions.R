@@ -107,7 +107,7 @@ res = predict(fit_model, data_testing);
 brainnet::evaluate_model(actual = sex_testing, predicted =  res);
 
 classfication_gp = data.frame('x'=res, 'y'=seq(length(res)), 'group'=sex_testing);
-ggplot2::ggplot(classfication_gp, ggplot2::aes(x,y)) + ggplot2::geom_point(ggplot2::aes(colour = group)) +
+ggplot2::ggplot(classfication_gp, ggplot2::aes(classfication_glm$x, classfication_glm$y)) + ggplot2::geom_point(ggplot2::aes(colour = classfication_glm$group)) +
     ggplot2::labs(title = "Classification results using Gaussian process classification", x = "Classification result", y = "Subject ID", color = "True group\n");
 
 ################################################################################
@@ -120,7 +120,7 @@ ggplot2::ggplot(classfication_gp, ggplot2::aes(x,y)) + ggplot2::geom_point(ggplo
 ##### No neuroimaging data: predict based on age + height only:
 fit1 <- glm(formula = sex ~ age + height, data = data_full_dem, family=binomial(link='logit'));
 classfication_glm = data.frame('x'=fit1$fitted.values, 'y'=seq(length(fit1$fitted.values)), 'group'=data_full_dem$sex, 'age'=data_full_dem$age);
-ggplot2::ggplot(classfication_glm, ggplot2::aes(x,y)) + ggplot2::geom_point(ggplot2::aes(colour = group)) +
+ggplot2::ggplot(classfication_glm, ggplot2::aes(classfication_glm$x, classfication_glm$y)) + ggplot2::geom_point(ggplot2::aes(colour = classfication_glm$group)) +
     ggplot2::labs(title = "Classification results using logistic regression", x = "Classification result", y = "Subject ID", color = "True group\n") +
     ggplot2::geom_vline(xintercept=c(0.5), linetype="longdash");
 summary(fit1);
