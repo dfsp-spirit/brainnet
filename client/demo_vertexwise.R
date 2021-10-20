@@ -80,8 +80,9 @@ t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "femal
 
 num_verts = length(considered_vertexcolnames);
 
-options("mc.cores" = 12L);
-num_cores = getOption("mc.cores", default = 2L);
+num_cores = 44L;
+options("mc.cores" = num_cores);
+
 
 
 fit_model_effect_size <- function(vertex_idx) {
@@ -98,9 +99,21 @@ fit_model_effect_size <- function(vertex_idx) {
 }
 
 
+cat(sprintf("Starting model fitting with %d cores at:\n", num_cores));
+print(Sys.time());
 
 res_list_effect_sizes_sex = bettermc::mclapply( 1L:num_verts, mc.cores = num_cores, fit_model_effect_size );
+
+cat(sprintf("Model fitting with %d cores done at:\n", num_cores));
+print(Sys.time());
+
+
 effect_sizes_sex = unlist(res_list_effect_sizes_sex);
+effect_sizes_file = "~/effects.mgh"
+freesurferformats::write.fs.morph(effect_sizes_file, effect_sizes_sex);
+cat(sprintf("Wrote results to file '%s'.\n", effect_sizes_file));
+
+#####
 
 do_run_sequential_version = FALSE;
 if(do_run_sequential_version) {
@@ -136,23 +149,26 @@ fsbrain::vis.data.on.fsaverage(morph_data_both = effect_sizes_sex, draw_colorbar
 
 ##### Use fastglm instead #####
 
-## here we test for a single vertex
-#ffit = fastglm::fastglm(x=as.matrix(data_full$V1), y=as.integer(data_full_dem$sex));#
+do_try_fastglm_and_qdec = FALSE;
+
+if(do_try_fastglm_and_qdec) {
+
+  ## here we test for a single vertex
+  #ffit = fastglm::fastglm(x=as.matrix(data_full$V1), y=as.integer(data_full_dem$sex));#
 
 
-##### Use QDECR instead. It does not support interaction though, so its use seems limited.
-##### It seems it uses RcppEigen::fastLm internally, and that may (?) support interactions, gotta double-check.
-demographics$age = demographics$AGE; # rename only
-demographics$subject_id = demographics$subject_data_dirname;
-fitqd <- QDECR::qdecr_fastlm(qdecr_thickness ~ age + sex,
-                           data = demographics, # I think it only want the demographics here and loads the NI data itself.
-                           id = "subject_id",
-                           hemi = "lh",
-                           project = "test_project",
-                           dir_tmp = "/dev/shm/",
-                           dir_subj = subjects_dir,
-                           dir_fshome = "~/software/freesurfer",
-                           n_cores=40,
-                           clobber = TRUE);
-
-
+  ##### Use QDECR instead. It does not support interaction though, so its use seems limited.
+  ##### It seems it uses RcppEigen::fastLm internally, and that may (?) support interactions, gotta double-check.
+  demographics$age = demographics$AGE; # rename only
+  demographics$subject_id = demographics$subject_data_dirname;
+  fitqd <- QDECR::qdecr_fastlm(qdecr_thickness ~ age + sex,
+                             data = demographics, # I think it only want the demographics here and loads the NI data itself.
+                             id = "subject_id",
+                             hemi = "lh",
+                             project = "test_project",
+                             dir_tmp = "/dev/shm/",
+                             dir_subj = subjects_dir,
+                             dir_fshome = "~/software/freesurfer",
+                             n_cores=40,
+                             clobber = TRUE);
+}
