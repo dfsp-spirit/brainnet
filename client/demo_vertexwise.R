@@ -14,6 +14,7 @@ library("MatchIt");   # matching of patient/control groups
 library("ggplot2");   # general purpose plots
 library("rsq");       # to compute R squared of a GLM
 library("parallel");  # run stuff in parallel on several CPU cores.
+library("bettermc");  # better replacement for parallel::mclapply
 
 #library("sva"); # batch correction using ComBat. To install: install.packages("BiocManager"); BiocManager::install("sva");
 
@@ -98,7 +99,7 @@ fit_model_effect_size <- function(vertex_idx) {
 
 
 
-res_list_effect_sizes_sex = parallel::mclapply( 1L:num_verts, mc.cores = num_cores, fit_model_effect_size );
+res_list_effect_sizes_sex = bettermc::mclapply( 1L:num_verts, mc.cores = num_cores, fit_model_effect_size );
 effect_sizes_sex = unlist(res_list_effect_sizes_sex);
 
 do_run_sequential_version = FALSE;
