@@ -102,7 +102,7 @@ fit_model_effect_size <- function(vertex_idx) {
 cat(sprintf("Starting model fitting with %d cores at:\n", num_cores));
 print(Sys.time());
 
-res_list_effect_sizes_sex = bettermc::mclapply( 1L:num_verts, mc.cores = num_cores, fit_model_effect_size );
+res_list_effect_sizes_sex = bettermc::mclapply( 1L:num_verts, fit_model_effect_size, mc.cores = num_cores, mc.progress = TRUE );
 
 cat(sprintf("Model fitting with %d cores done at:\n", num_cores));
 print(Sys.time());
