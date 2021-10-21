@@ -210,13 +210,14 @@ if(do_try_fastglm_and_qdec) {
   demographics$age = demographics$AGE; # rename only
   demographics$subject_id = demographics$subject_data_dirname;
   fitqd <- QDECR::qdecr_fastlm(qdecr_thickness ~ age + sex,
-                             data = demographics, # I think it only want the demographics here and loads the NI data itself.
-                             id = "subject_id",
+                             data = demographics, # It only wants the demographics here and loads the NI data itself.
+                             id = "subject_id",   # The subject column (directory under the recon-all dir for each subject).
                              hemi = "lh",
                              project = "test_project",
-                             dir_tmp = "/dev/shm/",
+                             dir_tmp = "/dev/shm/",  # Something which provides fast IO, shared memory is great.
                              dir_subj = subjects_dir,
                              dir_fshome = "~/software/freesurfer",
                              n_cores=40,
                              clobber = TRUE);
 }
+
