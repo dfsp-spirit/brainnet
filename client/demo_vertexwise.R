@@ -79,9 +79,9 @@ t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "femal
 ################################################################################
 
 
-num_columns = length(considered_vertexcolnames);
+num_verts = length(considered_vertexcolnames);
 num_metadata_columns_at_end = 7L; # Columns for group, sex, age, ...
-num_verts = length(considered_vertexcolnames) - num_metadata_columns_at_end;
+num_columns = length(considered_vertexcolnames) + num_metadata_columns_at_end;
 
 num_cores = 44L;
 options("mc.cores" = num_cores);
@@ -92,7 +92,7 @@ options("mc.cores" = num_cores);
 # waste of CPU resources (cores idling). The correct setting depends on the number of cores and RAM of your machine.
 # Use proper system monitoring tools (like 'atop' under Linux) that show you when bottlenecks occur, and keep the settings
 # just below the value at which they first show up.
-chunk_size = num_cores * 1000L;  # This works well on my 48 core Linux machine with 128 GB of RAM.
+chunk_size = num_cores * 500L;  # This works well on my 48 core Linux machine with 128 GB of RAM.
 
 
 vert_indices = 1L:num_verts;
@@ -102,16 +102,28 @@ cat(sprintf("Starting model fitting (%d verts total, %d chunks with chunk size %
 print(Sys.time());
 
 
+includes <- '#include <sys/wait.h>'
+code <- 'int wstat; while (waitpid(-1, &wstat, WNOHANG) > 0) {};'
+wait_for_zombies_to_die <- inline::cfunction(body=code, includes=includes, convention='.C')
+
+
 all_chunks_effect_sizes = c();
+all_metadata_column_indices = seq(((num_columns - num_metadata_columns_at_end) + 1L), num_columns);
 
 for(chunk_idx in seq_along(chunks)) {
 
   vertex_indices_of_this_chunk = chunks[[chunk_idx]];
 
   # Add the meta data columns (age, sex, ...) from the end. They are required for the GLM.
-  vertex_indices_of_this_chunk = c(vertex_indices_of_this_chunk, seq(num_columns-num_metadata_columns_at_end+1L, num_columns))
+  vertex_indices_of_this_chunk = c(vertex_indices_of_this_chunk, all_metadata_column_indices); # Column indices of chunk data in full glm_data.
 
   glm_data_chunk = glm_data[, vertex_indices_of_this_chunk]; # Matrix with dim: num_subjects x chunk_size
+
+  # Fix column names for metadata columns (copy from glm_data) for the names formula to work.
+  num_columns_chunk = ncol(glm_data_chunk);
+  chunk_first_metadata_column_index = (num_columns_chunk - num_metadata_columns_at_end) + 1L; # These indices are for glm_data.
+  chunk_all_metadata_column_indices = seq(chunk_first_metadata_column_index, num_columns_chunk);
+  colnames(glm_data_chunk)[chunk_all_metadata_column_indices] = colnames(glm_data)[all_metadata_column_indices];
 
   fit_model_effect_size <- function(vertex_idx) {
     vertex_colname = considered_vertexcolnames[vertex_idx];
@@ -132,6 +144,7 @@ for(chunk_idx in seq_along(chunks)) {
 
 
   res_list_effect_sizes_this_chunk = bettermc::mclapply( 1L:num_verts, fit_model_effect_size, mc.cores = num_cores, mc.progress = TRUE );
+  wait_for_zombies_to_die();
   effect_sizes_this_chunk = unlist(res_list_effect_sizes_this_chunk);
   all_chunks_effect_sizes = c(all_chunks_effect_sizes, effect_sizes_this_chunk);
 
