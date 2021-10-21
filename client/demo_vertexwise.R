@@ -92,7 +92,7 @@ options("mc.cores" = num_cores);
 # waste of CPU resources (cores idling). The correct setting depends on the number of cores and RAM of your machine.
 # Use proper system monitoring tools (like 'atop' under Linux) that show you when bottlenecks occur, and keep the settings
 # just below the value at which they first show up.
-chunk_size = num_cores * 500L;  # This works well on my 48 core Linux machine with 128 GB of RAM.
+chunk_size = num_cores * 200L;  # This works well on my 48 core Linux machine with 128 GB of RAM.
 
 
 vert_indices = 1L:num_verts;
