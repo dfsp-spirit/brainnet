@@ -94,10 +94,18 @@ if(do_matching) {
 
 
 # create model matrix using factor, needs to be the same model as used for the group comparison in matlab-script
-mm <- model.matrix(~ demographics$AGE + factor(demographics$site) + factor(demographics$qualification));
+mm <- model.matrix(~ demographics$sex + demographics$AGE + factor(demographics$site) + factor(demographics$qualification));
 
-predictors <- c("Age", "Site", "Qualification");
-slm.F <- slmtools::slm_effect_sizes(mm, data_full_dem, predictors, c("cohens.f", "etasq", "power"));
+predictors <- c("Sex", "Age", "Site", "Qualification");
+slm.F <- slmtools::slm_effect_sizes(mm, glm_data, predictors, c("cohens.f", "etasq", "power")); # the slmtools package is in my neuroimaging repo as a tar.gz
 
+#visualization of per vertex effect sizes of group on fsaverage6, change expression in slm.F$cohens.F[] to plot the data of other effects, e.g. SA, site etc.
+for(pred_idx in seq.int(length(predictors))) {
+    predictor = predictors[pred_idx];
+    cm = fsbrain::vis.data.on.subject(subjects_dir, "fsaverage", morph_data_both = slm.F$cohens.f[pred_idx,], views=NULL);
+    output_img = sprintf("cohenf_%s.png", predictor);
+    cat(sprintf("Writing figure to file: %s\n", output_img));
+    fsbrain::export(cm, output_img = output_img, colorbar_legend = predictor);
+}
 
 
