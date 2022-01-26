@@ -38,4 +38,4 @@ if(! dir.exists(subjects_dir)) {
 }
 
 demographics_file = system.file("extdata", "ABIDE_Phenotypic_V1_0b_preprocessed1.csv", package = "brainnet", mustWork = TRUE);
-demographics = readxl::read_excel(demographics_file);
+demographics = read.csv(demographics_file, sep=",");
