@@ -51,9 +51,10 @@ demographics_after_matching = demographics;
 ############################## Match groups ####################################
 ################################################################################
 
-do_matching = F; # Whether to perform cardinality matching for a matched sample.
+do_matching = TRUE; # Whether to perform cardinality matching for a matched sample.
 
 if(do_matching) {
+    cat(sprintf("Running matching.\n"));
 
     # Add demographics data to data.frame, this is required by the MatchIt package.
     data_full_dem = data_full;
@@ -71,6 +72,8 @@ if(do_matching) {
     match = MatchIt::matchit(sex ~ age + site + qualification, data = data_full_dem, method = "cardinality", solver = solver);
     summary(match);
     data_full_matched = MatchIt::match.data(match);
+
+    cat(sprintf("Matching done, retained %d of the %d subjects.\n", nrow(data_full_matched), nrow(data_full)));
 
     t.test(data_full_matched$age[data_full_matched$sex == "male"], data_full_matched$age[data_full_matched$sex == "female"]);
 
@@ -90,6 +93,8 @@ if(do_matching) {
 
     # Create the matched data.matrix from the (now purely numeric) data.frame.
     glm_data = data.matrix(data_full_matched);
+} else {
+    cat(sprintf("Using full data for %d subjects without matching.\n", nrow(data_full)));
 }
 
 ################################################################################
