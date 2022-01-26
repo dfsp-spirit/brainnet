@@ -67,7 +67,7 @@ if(do_matching) {
     # check for group differences in age
     t.test(data_full_dem$age[data_full_dem$sex == "male"], data_full_dem$age[data_full_dem$sex == "female"]);
 
-    # Match sample to remove difference. TODO: The group variable needs to be ordered, and we need to check that factors are used where appropriate.
+    # Match sample to remove difference.
     solver = "glpk"; # USe "gurobi" if you have it (requires registering for academic license and manual install), or "glpk" if not.
     match = MatchIt::matchit(sex ~ age + site + qualification, data = data_full_dem, method = "cardinality", solver = solver);
     summary(match);
