@@ -37,5 +37,7 @@ if(! dir.exists(subjects_dir)) {
     stop(sprintf("The subjects_dir '%s' does not exist.\n", subjects_dir));
 }
 
-demographics_file = system.file("extdata", "ABIDE_Phenotypic_V1_0b_preprocessed1.csv", package = "brainnet", mustWork = TRUE);
-demographics = read.csv(demographics_file, sep=",");
+md = load_ABIDE_metadata(impute_data = TRUE);
+demographics = md$demographics;
+subjects_list = md$subjects_list;
+brainstats = md$brainstats;

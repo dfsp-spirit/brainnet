@@ -77,17 +77,25 @@ get_IXI_brainstats_for_subjects <- function(subjects_list) {
 
 #' @title Load IXI demographics and brain stats
 #'
+#' @param add_merged logical, whether to add return a single merged data.frame to the return value list with key 'merged'.
+#'
 #' @return named list with entries 'brainstats', 'demographics' and 'subjects_list'. The first two are data.frames, the last one is a vector of character strings.
+#'
+#' @note The column that you would expect to be named 'subject_id' is called 'subject_data_dirname', because the IXI ID is not the same as the FreeSurfer subject directory name here.
 #'
 #' @importFrom readxl read_excel
 #' @export
-load_IXI_metadata <- function() {
+load_IXI_metadata <- function(add_merged = TRUE) {
     demographics_file = system.file("extdata", "IXI_demographics_filtered_fixed.xlsx", package = "brainnet", mustWork = TRUE);
     demographics = readxl::read_excel(demographics_file);
     demographics = postproc_IXI_demographics(demographics);
     subjects_list = demographics$subject_data_dirname;
-    brainstats = get_IXI_brainstats_for_subjects(subjects_list);
-    return(list("brainstats"=brainstats, "demographics"=demographics, "subjects_list"=subjects_list));
+    brainstats = brainnet:::get_IXI_brainstats_for_subjects(subjects_list);
+    res = list("brainstats"=brainstats, "demographics"=demographics, "subjects_list"=subjects_list);
+    if(add_merged) {
+        res$merged = base::merge(demographics, brainstats, by.x="subject_data_dirname", by.y="subject");
+    }
+    return(res);
 }
 
 

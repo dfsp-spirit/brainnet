@@ -4,11 +4,17 @@
 \alias{load_IXI_metadata}
 \title{Load IXI demographics and brain stats}
 \usage{
-load_IXI_metadata()
+load_IXI_metadata(add_merged = TRUE)
+}
+\arguments{
+\item{add_merged}{logical, whether to add return a single merged data.frame to the return value list with key 'merged'.}
 }
 \value{
 named list with entries 'brainstats', 'demographics' and 'subjects_list'. The first two are data.frames, the last one is a vector of character strings.
 }
 \description{
 Load IXI demographics and brain stats
+}
+\note{
+The column that you would expect to be named 'subject_id' is called 'subject_data_dirname', because the IXI ID is not the same as the FreeSurfer subject directory name here.
 }

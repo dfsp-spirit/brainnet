@@ -4,13 +4,15 @@
 #'
 #' @param impute_data logical, whether to impute missing data with mice. The filtered data (in_DiMartino_study AND has_structural_img) contains 30 subjects with missing IQ values.
 #'
+#' @param add_merged logical, whether to add return a single merged data.frame to the return value list with key 'merged'.
+#'
 #' @return named list with entries 'brainstats', 'demographics' and 'subjects_list'. The first two are data.frames, the last one is a vector of character strings.
 #'
 #' @importFrom mice mice complete
 #' @importFrom utils read.table
 #'
 #' @export
-load_ABIDE_metadata <- function(impute_data = TRUE) {
+load_ABIDE_metadata <- function(impute_data = TRUE, add_merged=TRUE) {
     abide_metadata = list();
 
 
@@ -68,6 +70,9 @@ load_ABIDE_metadata <- function(impute_data = TRUE) {
     abide_metadata$brainstats = brainstats;
     abide_metadata$demographics = demographics;
     abide_metadata$subjects_list = subjects_list;
+    if(add_merged) {
+        abide_metadata$merged = base::merge(demographics, brainstats, by.x="subject_id", by.y="subject");
+    }
 
     return(abide_metadata);
 }
