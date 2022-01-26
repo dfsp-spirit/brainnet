@@ -15,6 +15,7 @@ library("slmtools");  # internal R package of Ecker neuroimaging group for mass-
 ########################## Load data and demographics ##########################
 ################################################################################
 
+do_plot=FALSE;
 measure = "thickness";
 
 if(brainnet:::get_os() == "linux") {
@@ -48,7 +49,7 @@ glm_data = data.matrix(data_full); # Create the unmatched data.matrix from the p
 ############################## Match groups ####################################
 ################################################################################
 
-do_matching = FALSE; # Whether to perform cardinality matching for a matched sample.
+do_matching = TRUE; # Whether to perform cardinality matching for a matched sample.
 
 if(do_matching) {
 
@@ -69,7 +70,7 @@ if(do_matching) {
     summary(match);
     data_full_matched = MatchIt::match.data(match);
 
-    t.test(glm_data$age[glm_data$sex == "male"], glm_data$age[glm_data$sex == "female"]);
+    t.test(data_full_matched$age[data_full_matched$sex == "male"], data_full_matched$age[data_full_matched$sex == "female"]);
 
     # Remove covariates from matched data (only the numerical neuroimaging data must remain).
     data_full_matched$sex = NULL;
@@ -79,7 +80,7 @@ if(do_matching) {
 
     # Filter the demographics for the retained subjects
     demographics = subset(demographics, demographics$subject_data_dirname %in% data_full_dem$subject_id);
-    data_full_dem$subject_id = NULL; # Remove the subject_id column as well.
+    data_full_matched$subject_id = NULL; # Remove the subject_id column as well.
 
     # Also remove the matching weights (which are all 1 anyways for cardinality matching)
     data_full_matched$weights = NULL;
@@ -99,13 +100,15 @@ mm <- model.matrix(~ demographics$sex + demographics$AGE + factor(demographics$s
 predictors <- c("Sex", "Age", "Site", "Qualification");
 slm.F <- slmtools::slm_effect_sizes(mm, glm_data, predictors, c("cohens.f", "etasq", "power")); # the slmtools package is in my neuroimaging repo as a tar.gz
 
-#visualization of per vertex effect sizes of group on fsaverage6, change expression in slm.F$cohens.F[] to plot the data of other effects, e.g. SA, site etc.
-for(pred_idx in seq.int(length(predictors))) {
-    predictor = predictors[pred_idx];
-    cm = fsbrain::vis.data.on.subject(subjects_dir, "fsaverage", morph_data_both = slm.F$cohens.f[pred_idx,], views=NULL);
-    output_img = sprintf("cohenf_%s.png", predictor);
-    cat(sprintf("Writing figure to file: %s\n", output_img));
-    fsbrain::export(cm, output_img = output_img, colorbar_legend = predictor);
+if(do_plot) {
+    #visualization of per vertex effect sizes of group on fsaverage6, change expression in slm.F$cohens.F[] to plot the data of other effects, e.g. SA, site etc.
+    for(pred_idx in seq.int(length(predictors))) {
+        predictor = predictors[pred_idx];
+        cm = fsbrain::vis.data.on.subject(subjects_dir, "fsaverage", morph_data_both = slm.F$cohens.f[pred_idx,], views=NULL);
+        output_img = sprintf("cohenf_%s.png", predictor);
+        cat(sprintf("Writing figure to file: %s\n", output_img));
+        fsbrain::export(cm, output_img = output_img, colorbar_legend = predictor);
+    }
 }
 
 #' @title Create effect size violin plots for all predictors at once.
@@ -137,5 +140,9 @@ effect_size_plot <- function(effects_mat) {
     return(p)
 }
 
-effect_size_plot(slm.F$cohens.f);
+
+if(do_plot) {
+    effect_size_plot(slm.F$cohens.f);
+}
+
 
