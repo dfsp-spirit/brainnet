@@ -44,6 +44,7 @@ data_full = fsbrain::group.morph.standard(subjects_dir, subjects_list, measure, 
 considered_vertexcolnames = colnames(data_full);
 
 glm_data = data.matrix(data_full); # Create the unmatched data.matrix from the purely numeric data.frame.
+demographics_after_matching = demographics;
 
 ################################################################################
 ############################## Match groups ####################################
@@ -79,8 +80,9 @@ if(do_matching) {
     data_full_matched$qualification = NULL;
 
     # Filter the demographics for the retained subjects
-    demographics = subset(demographics, demographics$subject_data_dirname %in% data_full_dem$subject_id);
-    data_full_matched$subject_id = NULL; # Remove the subject_id column as well.
+    kept_subjects = data_full_matched$subject_id;
+    demographics_after_matching = subset(demographics, demographics$subject_data_dirname %in% kept_subjects);
+    data_full_matched$subject_id = NULL; # Now that we used it, remove the subject_id column as well.
 
     # Also remove the matching weights (which are all 1 anyways for cardinality matching)
     data_full_matched$weights = NULL;
@@ -95,7 +97,7 @@ if(do_matching) {
 
 
 # create model matrix using factor, needs to be the same model as used for the group comparison in matlab-script
-mm <- model.matrix(~ demographics$sex + demographics$AGE + factor(demographics$site) + factor(demographics$qualification));
+mm <- model.matrix(~ demographics_after_matching$sex + demographics_after_matching$AGE + factor(demographics_after_matching$site) + factor(demographics_after_matching$qualification));
 
 predictors <- c("Sex", "Age", "Site", "Qualification");
 slm.F <- slmtools::slm_effect_sizes(mm, glm_data, predictors, c("cohens.f", "etasq", "power")); # the slmtools package is in my neuroimaging repo as a tar.gz
