@@ -118,6 +118,9 @@ if(do_plot) {
 #'
 #' @param effects_mat n*m matrix in which the n rownames are the predictors (like age, sex, site, ...) and the m columns contain the effect sizes for the m vertices.
 #'
+#' @importFrom reshape2 melt
+#' @importFrom ggplot2 ggplot coord_flip geom_violin geom_boxplot theme_light theme element_text ylab scale_x_discrete scale_fill_brewer scale_color_brewer
+#'
 #' @return a ggplot instance.
 effect_size_plot <- function(effects_mat) {
     tdata <- t(as.data.frame(effects_mat)); #transpose data
