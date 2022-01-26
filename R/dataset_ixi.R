@@ -52,3 +52,42 @@ postproc_IXI_demographics <- function(demographics) {
 
     return(demographics);
 }
+
+
+#' @title Load IXI brain stats and filter by subjects_list.
+#'
+#' @param subjects_list vector of character strings, the subjects to filter. Pass NULL to get full brain stats.
+#'
+#' @return data.frame with brain stats
+#'
+#' @keywords internal
+get_IXI_brainstats_for_subjects <- function(subjects_list) {
+    brainstats_file = system.file("extdata", "IXI_brainstats_with_pial.txt", package = "brainnet", mustWork = TRUE);
+    brainstats = utils::read.table(brainstats_file, header=TRUE, sep = " ");
+
+    if(is.null(subjects_list)) {
+        return(brainstats);
+    } else {
+        filtered_brainstats = brainstats[brainstats$subject %in% subjects_list,];
+        cat(sprintf("Received file with brains stats for %d subjects, kept %d which occur in subjects_list of length %d.\n", nrow(brainstats), nrow(filtered_brainstats), length(subjects_list)));
+        return(filtered_brainstats);
+    }
+}
+
+
+#' @title Load IXI demographics and brain stats
+#'
+#' @return named list with entries 'brainstats', 'demographics' and 'subjects_list'. The first two are data.frames, the last one is a vector of character strings.
+#'
+#' @importFrom readxl read_excel
+#' @export
+load_IXI_metadata <- function() {
+    demographics_file = system.file("extdata", "IXI_demographics_filtered_fixed.xlsx", package = "brainnet", mustWork = TRUE);
+    demographics = readxl::read_excel(demographics_file);
+    demographics = postproc_IXI_demographics(demographics);
+    subjects_list = demographics$subject_data_dirname;
+    brainstats = get_IXI_brainstats_for_subjects(subjects_list);
+    return(list("brainstats"=brainstats, "demographics"=demographics, "subjects_list"=subjects_list));
+}
+
+

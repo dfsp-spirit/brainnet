@@ -35,11 +35,16 @@ if(dir.exists("~/data/IXI_min")) {
 
 subjects_dir = file.path(study_dir, "mri/freesurfer"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 demographics_file = system.file("extdata", "IXI_demographics_filtered_fixed.xlsx", package = "brainnet", mustWork = TRUE);
-demographics = readxl::read_excel(demographics_file);
-demographics = brainnet::postproc_IXI_demographics(demographics);
+md = load_IXI_metadata();
+
+demographics = md$demographics;
+brainstats = md$brainstats; # not used yet, could use covariates from it.
+
+#demographics = readxl::read_excel(demographics_file);
+#demographics = brainnet::postproc_IXI_demographics(demographics);
 
 cat(sprintf("Loading FreeSurfer data from SUBJECTS_DIR '%s'.\n", subjects_dir ));
-subjects_list = demographics$subject_data_dirname; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
+subjects_list = md$subjects_list; # The directory names for the subjects, under the SUBJECTS_DIR, that are actually used for the analysis.
 
 
 data_full = fsbrain::group.morph.standard(subjects_dir, subjects_list, measure, hemi="both", fwhm="10", df_t=TRUE); # the per-vertex data

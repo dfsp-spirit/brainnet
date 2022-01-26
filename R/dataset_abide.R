@@ -66,8 +66,9 @@ load_ABIDE_metadata <- function(impute_data = TRUE) {
     subjects_list = as.character(as.vector(demographics$subject_id));
 
     abide_metadata$brainstats = brainstats;
-    abide_metadata$subjects_list = subjects_list;
     abide_metadata$demographics = demographics;
+    abide_metadata$subjects_list = subjects_list;
+
     return(abide_metadata);
 }
 
