@@ -51,7 +51,7 @@ demographics_after_matching = demographics;
 ############################## Match groups ####################################
 ################################################################################
 
-do_matching = TRUE; # Whether to perform cardinality matching for a matched sample.
+do_matching = F; # Whether to perform cardinality matching for a matched sample.
 
 if(do_matching) {
 
@@ -118,5 +118,14 @@ if(do_plot) {
 if(do_plot) {
     effect_size_violin_plots(slm.F$cohens.f);
 }
+
+if(do_matching) {
+    cat(sprintf("Mean effect sizes with matching:\n"));
+} else {
+    cat(sprintf("Mean effect sizes without matching:\n"));
+}
+
+rowMeans(slm.F$cohens.f, na.rm = TRUE);
+
 
 
