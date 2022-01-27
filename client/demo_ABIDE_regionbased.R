@@ -52,10 +52,9 @@ measure="thickness";
 hemi="split";
 atlas="aparc";
 agg_control = fsbrain::group.agg.atlas.native(subjects_dir, subjects_control, measure=measure, hemi=hemi, atlas=atlas);#, cache_file = sprintf("cache_ABIDE_control_%s_%s_%s.Rdata", measure, hemi, atlas));
-
-options("freesurferformats.debug"=3L);    # Enable debug for freesurferformats to print file names. Allows finding out which one crashes.
 agg_asd = fsbrain::group.agg.atlas.native(subjects_dir, subjects_asd, measure=measure, hemi=hemi, atlas=atlas); #, cache_file = sprintf("cache_ABIDE_asd_%s_%s_%s.Rdata", measure, hemi, atlas));
 
-options("freesurferformats.debug"=0L);    # Disable debug for freesurferformats.
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
-fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
+#fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
+
+
