@@ -51,10 +51,55 @@ if(length(subjects_asd) + length(subjects_control) != length(subjects_list)) {
 measure="thickness";
 hemi="split";
 atlas="aparc";
-agg_control = fsbrain::group.agg.atlas.native(subjects_dir, subjects_control, measure=measure, hemi=hemi, atlas=atlas);#, cache_file = sprintf("cache_ABIDE_control_%s_%s_%s.Rdata", measure, hemi, atlas));
-agg_asd = fsbrain::group.agg.atlas.native(subjects_dir, subjects_asd, measure=measure, hemi=hemi, atlas=atlas); #, cache_file = sprintf("cache_ABIDE_asd_%s_%s_%s.Rdata", measure, hemi, atlas));
 
+braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas);#, cache_file = sprintf("cache_ABIDE_control_%s_%s_%s.Rdata", measure, hemi, atlas));
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
-#fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
+# fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
+
+# Remove some columns we don not want.
+braindata$lh_corpuscallosum = NULL;
+braindata$rh_corpuscallosum = NULL;
+braindata$lh_unknown = NULL;
+braindata$rh_unknown = NULL;
+
+glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject");
+
+# Now run the GLMs
+
+considered_atlas_regions = names(braindata);
+considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"];
+
+region_idx = 1L;
+region_fits = list();
+pvalues_group = list();
+effect_sizes_group = list();
+for(region_name in considered_atlas_regions) {
+    cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
+    formula_region = sprintf("%s ~ group + gender + age + iq + site + totalMeanCorticalThickness", region_name);
+    fit = glm(formula = formula_region, data = glm_data, family=gaussian());
+    region_fits[[region_name]] = fit;
+    pvalues_group[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);
+
+    raw_sd_case = sd(glm_data[[region_name]][glm_data$group == "asd"]);
+    raw_sd_control = sd(glm_data[[region_name]][glm_data$group == "control"]);
+    raw_sd_pooled = sqrt((raw_sd_case * raw_sd_case + raw_sd_control + raw_sd_control) / 2.0);
+    effect_group_case_mean = effects::effect("group", fit)$fit[1];
+    effect_grou_control_mean = effects::effect("group", fit)$fit[2];
+    cohen_d = (effect_group_case_mean - effect_grou_control_mean) / raw_sd_pooled;
+    effect_sizes_group[[region_name]] = abs(cohen_d); # we are not interested in direction for effect size.
+
+    region_idx = region_idx + 1L;
+}
+
+# Now investigate region_fits and pvalues_group.
+fit = region_fits$lh_bankssts;
+summary(fit);
+plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
+
+#contrast::contrast(fit, list(sex = "male", age=20), list(sex = "female"), age=20);
+#emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
+
+effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_sex); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
+fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", draw_colorbar = T);
 
 
