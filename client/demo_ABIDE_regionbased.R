@@ -96,10 +96,8 @@ fit = region_fits$lh_bankssts;
 summary(fit);
 plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
 
-#contrast::contrast(fit, list(sex = "male", age=20), list(sex = "female"), age=20);
-#emmeans::emmeans(fit, specs = pairwise ~ sex); # https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/
 
-effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_sex); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
+effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", draw_colorbar = T);
 
 
