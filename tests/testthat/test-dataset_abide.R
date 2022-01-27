@@ -1,5 +1,5 @@
 
-test_that("We can load the ABIDE metadata: demographics and brain stats", {
+testthat::test_that("We can load the ABIDE metadata: demographics and brain stats", {
     md = load_ABIDE_metadata();
 
     testthat::expect_true(is.list(md));

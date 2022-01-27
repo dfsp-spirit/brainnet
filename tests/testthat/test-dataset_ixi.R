@@ -1,4 +1,4 @@
-test_that("We can load the IXI metadata: demographics and brain stats", {
+testthat::test_that("We can load the IXI metadata: demographics and brain stats", {
     md = load_IXI_metadata();
 
     testthat::expect_true(is.list(md));
