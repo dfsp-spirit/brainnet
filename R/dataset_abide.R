@@ -12,6 +12,7 @@
 #'
 #' @importFrom mice mice complete
 #' @importFrom utils read.table
+#' @importFrom stats complete.cases
 #'
 #' @export
 load_ABIDE_metadata <- function(impute_data = TRUE, add_merged=TRUE, exclude_bad_quality=c("UM_1_0050272")) {
@@ -58,7 +59,7 @@ load_ABIDE_metadata <- function(impute_data = TRUE, add_merged=TRUE, exclude_bad
 
         ## Check for NA values in important columns: This shows that 30 subjects have an NA value for "iq".
         #sapply(demographics_and_brainstats, function(x) sum(is.na(x)));
-        num_subjects_with_missing_data = sum(as.integer(!complete.cases(demographics_and_brainstats)));
+        num_subjects_with_missing_data = sum(as.integer(!stats::complete.cases(demographics_and_brainstats)));
         cat(sprintf("Imputing IQ data for %d subjects with missing data (of %d subjects total).\n", num_subjects_with_missing_data, nrow(demographics_and_brainstats)));
 
         ## Impute the missing iq data.

@@ -60,6 +60,8 @@ postproc_IXI_demographics <- function(demographics) {
 #'
 #' @return data.frame with brain stats
 #'
+#' @importFrom utils read.table
+#'
 #' @keywords internal
 get_IXI_brainstats_for_subjects <- function(subjects_list) {
     brainstats_file = system.file("extdata", "IXI_brainstats_with_pial.txt", package = "brainnet", mustWork = TRUE);
@@ -90,7 +92,7 @@ load_IXI_metadata <- function(add_merged = TRUE) {
     demographics = readxl::read_excel(demographics_file);
     demographics = postproc_IXI_demographics(demographics);
     subjects_list = demographics$subject_data_dirname;
-    brainstats = brainnet:::get_IXI_brainstats_for_subjects(subjects_list);
+    brainstats = get_IXI_brainstats_for_subjects(subjects_list);
     res = list("brainstats"=brainstats, "demographics"=demographics, "subjects_list"=subjects_list);
     if(add_merged) {
         res$merged = base::merge(demographics, brainstats, by.x="subject_data_dirname", by.y="subject");
