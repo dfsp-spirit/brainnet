@@ -17,7 +17,6 @@ library("slmtools");  # internal R package of Ecker neuroimaging group for mass-
 ################################################################################
 
 do_plot=FALSE;
-measure = "thickness";
 
 if(brainnet:::get_os() == "linux") {
     study_dir = "~/nas/projects/abide";
@@ -38,6 +37,25 @@ if(! dir.exists(subjects_dir)) {
 }
 
 md = load_ABIDE_metadata(impute_data = TRUE);
-demographics = md$demographics;
-subjects_list = md$subjects_list;
-brainstats = md$brainstats;
+demographics = md$merged; # merged brainstats and demographics.
+subjects_list = demographics$subject_id;
+
+subjects_control = subjects_list[demographics$group == "control"];
+subjects_asd = subjects_list[demographics$group == "asd"];
+
+cat(sprintf("Working with %d subjects in total: %d ASD and %s controls.\n", length(subjects_list), length(subjects_asd), length(subjects_control)));
+if(length(subjects_asd) + length(subjects_control) != length(subjects_list)) {
+    stop("Invalid group assignment to case/control (or more than 2 groups).");
+}
+
+measure="thickness";
+hemi="split";
+atlas="aparc";
+agg_control = fsbrain::group.agg.atlas.native(subjects_dir, subjects_control, measure=measure, hemi=hemi, atlas=atlas);#, cache_file = sprintf("cache_ABIDE_control_%s_%s_%s.Rdata", measure, hemi, atlas));
+
+options("freesurferformats.debug"=3L);    # Enable debug for freesurferformats to print file names. Allows finding out which one crashes.
+agg_asd = fsbrain::group.agg.atlas.native(subjects_dir, subjects_asd, measure=measure, hemi=hemi, atlas=atlas); #, cache_file = sprintf("cache_ABIDE_asd_%s_%s_%s.Rdata", measure, hemi, atlas));
+
+options("freesurferformats.debug"=0L);    # Disable debug for freesurferformats.
+# fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
+fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");

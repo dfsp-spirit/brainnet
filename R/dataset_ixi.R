@@ -81,7 +81,7 @@ get_IXI_brainstats_for_subjects <- function(subjects_list) {
 #'
 #' @return named list with entries 'brainstats', 'demographics' and 'subjects_list'. The first two are data.frames, the last one is a vector of character strings.
 #'
-#' @note The column that you would expect to be named 'subject_id' is called 'subject_data_dirname', because the IXI ID is not the same as the FreeSurfer subject directory name here.
+#' @note The column that you would expect to be named 'subject_id' is called 'subject_data_dirname' in demographics/merged, because the IXI ID is not the same as the FreeSurfer subject directory name here.
 #'
 #' @importFrom readxl read_excel
 #' @export

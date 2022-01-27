@@ -16,5 +16,5 @@ named list with entries 'brainstats', 'demographics' and 'subjects_list'. The fi
 Load IXI demographics and brain stats
 }
 \note{
-The column that you would expect to be named 'subject_id' is called 'subject_data_dirname', because the IXI ID is not the same as the FreeSurfer subject directory name here.
+The column that you would expect to be named 'subject_id' is called 'subject_data_dirname' in demographics/merged, because the IXI ID is not the same as the FreeSurfer subject directory name here.
 }

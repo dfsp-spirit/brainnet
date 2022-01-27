@@ -6,13 +6,15 @@
 #'
 #' @param add_merged logical, whether to add return a single merged data.frame to the return value list with key 'merged'.
 #'
+#' @param exclude_bad_quality manually excluded subjects, e.g. due to bad quality
+#'
 #' @return named list with entries 'brainstats', 'demographics' and 'subjects_list'. The first two are data.frames, the last one is a vector of character strings.
 #'
 #' @importFrom mice mice complete
 #' @importFrom utils read.table
 #'
 #' @export
-load_ABIDE_metadata <- function(impute_data = TRUE, add_merged=TRUE) {
+load_ABIDE_metadata <- function(impute_data = TRUE, add_merged=TRUE, exclude_bad_quality=c("UM_1_0050272")) {
     abide_metadata = list();
 
 
@@ -29,6 +31,14 @@ load_ABIDE_metadata <- function(impute_data = TRUE, add_merged=TRUE) {
     md = subset(md, md$FILE_ID != "no_filename");
 
     cat(sprintf("Received demographics for %d subjects, %d of them are in diMartino study and have structural data.\n", nrow(md_raw), nrow(md)));
+
+    md = subset(md, !(md$FILE_ID %in% exclude_bad_quality));
+
+    if(length(exclude_bad_quality) > 0L) {
+        cat(sprintf("Excluding %d subjects for bad quality (parameter 'exclude_bad_quality').\n", length(exclude_bad_quality)));
+    }
+
+
 
 
     demographics = data.frame("subject_id"=md$FILE_ID, "group"=md$DX_GROUP, "site"=md$SITE_ID, "gender"=md$SEX, "age"=md$AGE_AT_SCAN, "iq"=md$FIQ);
@@ -55,8 +65,8 @@ load_ABIDE_metadata <- function(impute_data = TRUE, add_merged=TRUE) {
         ##  - We only impute data in columns we are interested in, otherwise it takes ages and the results for some columns make no sense anyways.
         ##  - We use the brainstats (computed from FreeSurfer parcellation stats using ExtractBrainMeasuresTS.bash script) to impute the values.
 
-        init = mice::mice(demographics_and_brainstats, maxit=0L);
-        imputation_res = mice::mice(demographics_and_brainstats, m=5, maxit=50, method='cart', seed=500);
+        #init = mice::mice(demographics_and_brainstats, maxit=0L);
+        imputation_res = mice::mice(demographics_and_brainstats, m=5, maxit=50, method='cart', seed=500, printFlag = FALSE);
         demographics_and_brainstats_imputed = mice::complete(imputation_res);
         ## Check again for NAs:
         #sapply(demographics_and_brainstats_imputed, function(x) sum(is.na(x)));
