@@ -4,10 +4,7 @@
 \alias{load_IXI_metadata}
 \title{Load IXI demographics and brain stats}
 \usage{
-load_IXI_metadata(add_merged = TRUE)
-}
-\arguments{
-\item{add_merged}{logical, whether to add return a single merged data.frame to the return value list with key 'merged'.}
+load_IXI_metadata()
 }
 \value{
 named list with entries 'brainstats', 'demographics' and 'subjects_list'. The first two are data.frames, the last one is a vector of character strings.

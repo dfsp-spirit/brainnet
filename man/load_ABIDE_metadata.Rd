@@ -6,14 +6,11 @@
 \usage{
 load_ABIDE_metadata(
   impute_data = TRUE,
-  add_merged = TRUE,
   exclude_bad_quality = c("UM_1_0050272")
 )
 }
 \arguments{
 \item{impute_data}{logical, whether to impute missing data with mice. The filtered data (in_DiMartino_study AND has_structural_img) contains 30 subjects with missing IQ values.}
-
-\item{add_merged}{logical, whether to add return a single merged data.frame to the return value list with key 'merged'.}
 
 \item{exclude_bad_quality}{manually excluded subjects, e.g. due to bad quality}
 }
