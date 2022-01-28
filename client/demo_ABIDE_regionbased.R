@@ -38,7 +38,7 @@ if(! dir.exists(subjects_dir)) {
 
 md = load_ABIDE_metadata(impute_data = TRUE);
 demographics = md$merged; # merged brainstats and demographics.
-subjects_list = demographics$subject_id;
+subjects_list = as.character(demographics$subject_id);
 
 subjects_control = subjects_list[demographics$group == "control"];
 subjects_asd = subjects_list[demographics$group == "asd"];
@@ -52,7 +52,8 @@ measure="thickness";
 hemi="split";
 atlas="aparc";
 
-braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas);#, cache_file = sprintf("cache_ABIDE_control_%s_%s_%s.Rdata", measure, hemi, atlas));
+
+braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
 # fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
 
@@ -75,7 +76,7 @@ pvalues_group = list();
 effect_sizes_group = list();
 for(region_name in considered_atlas_regions) {
     cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
-    formula_region = sprintf("%s ~ group + gender + age + iq + site + totalMeanCorticalThickness", region_name);
+    formula_region = sprintf("%s ~ group + age + iq + site + totalMeanCorticalThickness", region_name); # we do not use gender because the sample is all male.
     fit = glm(formula = formula_region, data = glm_data, family=gaussian());
     region_fits[[region_name]] = fit;
     pvalues_group[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);

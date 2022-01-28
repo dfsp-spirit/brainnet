@@ -49,8 +49,12 @@ load_ABIDE_metadata <- function(impute_data = TRUE, exclude_bad_quality=c("UM_1_
     demographics$gender[md$SEX == 2] = "female";
 
     if(impute_data) {
-        force_reimpute = FALSE;
+        force_reimpute = TRUE;
+        if(length(exclude_bad_quality) == 1L & exclude_bad_quality[1] == "UM_1_0050272") {
+            force_reimpute = FALSE; # no need to reimpute
+        }
         if(force_reimpute) {
+            cat(sprintf("Excluded subjects in parameter 'exclude_bad_quality' differ from the default, re-imputing."));
             demographics_and_brainstats = base::merge(demographics, brainstats, by.x="subject_id", by.y="subject");
             #cat(sprintf("Merged demographics with %d rows and brainstats with %d, results has %d rows.\n", nrow(demographics), nrow(brainstats), nrow(demographics_and_brainstats)));
 
@@ -75,9 +79,10 @@ load_ABIDE_metadata <- function(impute_data = TRUE, exclude_bad_quality=c("UM_1_
             #write.table(data.frame("subject_id"=demographics_and_brainstats_imputed$subject_id, "abide_iq_imputed"=demographics_and_brainstats_imputed$iq), file="ABIDE_iq_imputed.csv");
             # you still have to copy to inst/extdata in the package
         } else {
+            cat(sprintf("Excluded subjects in parameter 'exclude_bad_quality' match default, loading pre-imputed data."));
             imputed_file = system.file("extdata", "ABIDE_iq_imputed.csv", package = "brainnet", mustWork = TRUE);
             abide_imputed = utils::read.table(imputed_file);
-            demographics$iq = abide_imputed$iq;
+            demographics$iq = abide_imputed$abide_iq_imputed;
 
         }
     } else {
