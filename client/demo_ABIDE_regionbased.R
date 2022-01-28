@@ -100,11 +100,11 @@ plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15
 
 effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 cm_eff = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", views = NULL);
-fsbrain::export(cm_eff, colorbar_legend = "Cohens d", output_img = "abide_regions_cohenf.png");
+fsbrain::export(cm_eff, colorbar_legend = "Cohens d", output_img = "abide_regions_group_cohenf.png");
 
 pvalues_by_hemi = fsbrain::hemilist.from.prefixed.list(pvalues_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 cm_p = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = pvalues_by_hemi$lh, rh_region_value_list = pvalues_by_hemi$rh, atlas = "aparc", views = NULL);
-fsbrain::export(cm_p, colorbar_legend = "p value for group effect", output_img = "abide_regions_cohenf.png");
+fsbrain::export(cm_p, colorbar_legend = "p value for group effect", output_img = "abide_regions_group_pvalue.png");
 
 
 
