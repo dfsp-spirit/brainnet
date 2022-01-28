@@ -42,7 +42,6 @@ subjects_list = as.character(demographics$subject_id);
 
 subjects_control = subjects_list[demographics$group == "control"];
 subjects_asd = subjects_list[demographics$group == "asd"];
-
 cat(sprintf("Working with %d subjects in total: %d ASD and %s controls.\n", length(subjects_list), length(subjects_asd), length(subjects_control)));
 if(length(subjects_asd) + length(subjects_control) != length(subjects_list)) {
     stop("Invalid group assignment to case/control (or more than 2 groups).");
@@ -57,7 +56,7 @@ braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
 # fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
 
-# Remove some columns we don not want.
+# Remove some columns we do not want.
 braindata$lh_corpuscallosum = NULL;
 braindata$rh_corpuscallosum = NULL;
 braindata$lh_unknown = NULL;
@@ -65,7 +64,7 @@ braindata$rh_unknown = NULL;
 
 glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject");
 
-# Now run the GLMs
+# Run the GLMs (on per atlas region)
 
 considered_atlas_regions = names(braindata);
 considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"];
@@ -92,12 +91,14 @@ for(region_name in considered_atlas_regions) {
     region_idx = region_idx + 1L;
 }
 
-# Now investigate region_fits and pvalues_group.
-fit = region_fits$lh_bankssts;
-summary(fit);
-plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
+# Investigate region_fits and pvalues_group.
 
+## Prints stats for a single region
+#fit = region_fits$lh_bankssts;
+#summary(fit);
+#plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
 
+## Visualize values for all regions.
 effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 cm_eff = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", views = NULL);
 fsbrain::export(cm_eff, colorbar_legend = "Cohens d", output_img = "abide_regions_group_cohenf.png");
