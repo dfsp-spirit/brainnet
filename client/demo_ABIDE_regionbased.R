@@ -101,7 +101,7 @@ for(region_name in considered_atlas_regions) {
 ## Visualize values for all regions.
 effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 cm_eff = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = "aparc", views = NULL);
-fsbrain::export(cm_eff, colorbar_legend = "Cohens d", output_img = "abide_regions_group_cohenf.png");
+fsbrain::export(cm_eff, colorbar_legend = "Cohens d", output_img = "abide_regions_group_cohen_d.png");
 
 pvalues_by_hemi = fsbrain::hemilist.from.prefixed.list(pvalues_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
 cm_p = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = pvalues_by_hemi$lh, rh_region_value_list = pvalues_by_hemi$rh, atlas = "aparc", views = NULL);
