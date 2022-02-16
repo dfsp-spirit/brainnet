@@ -36,7 +36,7 @@ if(! dir.exists(subjects_dir)) {
     stop(sprintf("The subjects_dir '%s' does not exist.\n", subjects_dir));
 }
 
-md = load_ABIDE_metadata(impute_data = TRUE);
+md = load_ABIDE_metadata_males(impute_data = TRUE);
 demographics = md$merged; # merged brainstats and demographics.
 subjects_list = as.character(demographics$subject_id);
 
@@ -56,11 +56,11 @@ braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
 # fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
 
-# Remove some columns we do not want.
-braindata$lh_corpuscallosum = NULL;
-braindata$rh_corpuscallosum = NULL;
-braindata$lh_unknown = NULL;
-braindata$rh_unknown = NULL;
+# Remove some columns (atlas regions) we do not want.
+braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored.
+braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
+braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region.
+braindata$rh_unknown = NULL; # Same for other hemisphere.
 
 glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject");
 
