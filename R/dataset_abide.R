@@ -201,9 +201,13 @@ load_ABIDE_metadata <- function(impute_data = TRUE, exclude_bad_quality=c("UM_1_
 
 #' @title Return a hemilist with the paths of the aparc stats files for the ABIDE dataset.
 #'
-#' @description Return a hemilist with the paths of the aparc stats files for the ABIDE dataset. The files come pre-computed with the brainnet package. They were created by running the FreeSurfer tool 'aparcstats2table' on the full ABIDE I dataset (subjects with structural image data only, of course), with cortical thickness as the 'measure' argument.
+#' @description Return a hemilist with the paths of the aparc stats files for the ABIDE I dataset. The files come pre-computed with the brainnet package. They were created by running the FreeSurfer tool 'aparcstats2table' on the full ABIDE I dataset (subjects with structural image data only, of course) several times (with thickness, volume and area as the 'measure' argument).
+#'
+#' @param measure character string, a measure for which the stats files are available. Typically one of 'thickness', 'volume', 'area', unless you have computed more and added them manually.
 #'
 #' @return a named list with keys 'lh' and 'rh', both hold a filepath to the parcellation statistics file for the respective hemisphere.
+#'
+#' @note The asegstats (for the volume) are also available in 'inst/extdata' folder of this package as the file 'ABIDE_asegstats.tsv', but the path cannot be retrieved with this function as there are no hemi-specific files, just get it manually.
 #'
 #' @family ABIDE functions
 #'

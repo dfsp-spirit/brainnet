@@ -46,12 +46,20 @@ demographics = md$merged; # Extract the field that contains the merged brainstat
 #####
 #
 #
-# demographics = ... ## TODO: filter demographics here, as explained above. You will not get meaningful results without this step.
+# my_demographics = ... ## TODO: filter demographics here, as explained above. You will not get meaningful results without this step.
 
 ## Here is a QC example:
-lh_segstats_file = file.path()
-fsbrain::qc.from.segstats.tables()
+segstats_files = aparcstats_files_ABIDE(measure = "thickness"); # There is no need to use the same measure for QC and your GLM analysis below, leave this alone if in doubt.
+qc = fsbrain::qc.from.segstats.tables(segstats_files$lh, segstats_files$rh); # You can provide your own files as well (and will need to do so if you do not use the ABIDE/IXI datasets for which we provide the files).
+bad_quality_subjects = unique(c(qc$lh$failed_subjects, qc$rh$failed_subjects));
+my_demographics = subset(demographics, !(demographics$subject_id %in% bad_quality_subjects)); # Remove all bad quality scans.
+cat(sprintf("Excluded %d of %d subjects due to bad scan quality.\n", length(bad_quality_subjects), nrow(demographics)));
 
+
+
+
+## Your sample should be complete by this line.
+demographics = my_demographics;
 
 subjects_list = as.character(demographics$subject_id);
 
@@ -67,15 +75,16 @@ hemi="split";   ## For which hemisphere to compute the results. One of 'lh' for 
 atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'aparc.a2009s' for Destrieux atlas, 'aparc.DKTatlas40' for DKT atlas, or your custom atlas. See https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation for details.
 
 
-## Aggregate the native space data by atlas region. Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor.
+## Aggregate the native space data by atlas region. This takes quite a bit of time for a large data set (and slow hard disks/networks).
+## Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor. Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all, so the command only does trivial stuff and is very fast + needs to be run only once).
 braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
 # fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
 
-## Remove some columns (atlas regions) we do not want. This is atlas-specific.
-braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored.
+## Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do not need to change it.
+braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
 braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
-braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region.
+braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
 braindata$rh_unknown = NULL; # Same for other hemisphere.
 
 ## Merge the brain data with the demographics.

@@ -104,3 +104,23 @@ load_IXI_metadata <- function() {
 }
 
 
+#' @title Return a hemilist with the paths of the aparc stats files for the IXI dataset.
+#'
+#' @description Return a hemilist with the paths of the aparc stats files for the IXI dataset. The files come pre-computed with the brainnet package. They were created by running the FreeSurfer tool 'aparcstats2table' on the full IXI dataset (subjects with structural image data only, of course) several times (with thickness, volume and area as the 'measure' argument).
+#'
+#' @param measure character string, a measure for which the stats files are available. Typically one of 'thickness', 'volume', 'area', unless you have computed more and added them manually.
+#'
+#' @return a named list with keys 'lh' and 'rh', both hold a filepath to the parcellation statistics file for the respective hemisphere.
+#'
+#' @note The asegstats (for the volume) are also available in 'inst/extdata' folder of this package as the file 'IXI_asegstats.tsv', but the path cannot be retrieved with this function as there are no hemi-specific files, just get it manually.
+#'
+#' @family ABIDE functions
+#'
+#' @export
+aparcstats_files_IXI <- function(measure = "thickness") {
+    stats_files = list("lh"=system.file("extdata", sprintf("IXI_aparcstats_%s_lh.tsv", measure), package = "brainnet", mustWork = TRUE),
+                       "rh"=system.file("extdata", sprintf("IXI_aparcstats_%s_rh.tsv", measure), package = "brainnet", mustWork = TRUE));
+    return(stats_files);
+}
+
+
