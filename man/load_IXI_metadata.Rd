@@ -15,3 +15,9 @@ Load IXI demographics and brain stats
 \note{
 The column that you would expect to be named 'subject_id' is called 'subject_data_dirname' in demographics/merged, because the IXI ID is not the same as the FreeSurfer subject directory name here.
 }
+\seealso{
+Other IXI functions: 
+\code{\link{get_IXI_brainstats_for_subjects}()},
+\code{\link{postproc_IXI_demographics}()}
+}
+\concept{IXI functions}

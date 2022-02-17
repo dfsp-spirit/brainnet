@@ -12,6 +12,8 @@
 #' @importFrom utils read.table
 #' @importFrom stats complete.cases
 #'
+#' @family ABIDE functions
+#'
 #' @export
 load_ABIDE_metadata_males <- function(impute_data = TRUE, exclude_bad_quality=c("UM_1_0050272")) {
     abide_metadata = list();
@@ -111,6 +113,8 @@ load_ABIDE_metadata_males <- function(impute_data = TRUE, exclude_bad_quality=c(
 #' @importFrom utils read.table
 #' @importFrom stats complete.cases
 #'
+#' @family ABIDE functions
+#'
 #' @export
 load_ABIDE_metadata <- function(impute_data = TRUE, exclude_bad_quality=c("UM_1_0050272")) {
     abide_metadata = list();
@@ -192,6 +196,21 @@ load_ABIDE_metadata <- function(impute_data = TRUE, exclude_bad_quality=c("UM_1_
     abide_metadata$merged = base::merge(demographics, brainstats, by.x="subject_id", by.y="subject");
 
     return(abide_metadata);
+}
+
+
+#' @title Return a hemilist with the paths of the aparc stats files for the ABIDE dataset.
+#'
+#' @description Return a hemilist with the paths of the aparc stats files for the ABIDE dataset. The files come pre-computed with the brainnet package. They were created by running the FreeSurfer tool 'aparcstats2table' on the full ABIDE I dataset (subjects with structural image data only, of course), with cortical thickness as the 'measure' argument.
+#'
+#' @return a named list with keys 'lh' and 'rh', both hold a filepath to the parcellation statistics file for the respective hemisphere.
+#'
+#' @family ABIDE functions
+#'
+#' @export
+aparcstats_files_ABIDE <- function() {
+    stats_files = list("lh"=system.file("extdata", "ABIDE_aparcstats_thickness_lh.csv", package = "brainnet", mustWork = TRUE), "rh"=system.file("extdata", "ABIDE_aparcstats_thickness_rh.csv", package = "brainnet", mustWork = TRUE));
+    return(stats_files);
 }
 
 

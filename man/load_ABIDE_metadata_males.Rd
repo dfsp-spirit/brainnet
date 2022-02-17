@@ -20,3 +20,9 @@ named list with entries 'brainstats', 'demographics' and 'subjects_list'. The fi
 \description{
 Load ABIDE demographics and brain stats and filter so that only subjects from the DiMartino study \code{(https://www.nature.com/articles/mp201378)} which have structural imaging data remain. Note that the diMartino study only included male subjects.
 }
+\seealso{
+Other ABIDE functions: 
+\code{\link{aparcstats_files_ABIDE}()},
+\code{\link{load_ABIDE_metadata}()}
+}
+\concept{ABIDE functions}

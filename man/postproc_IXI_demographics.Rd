@@ -15,3 +15,9 @@ fixed df
 \description{
 Post-process IXI demographiocs data
 }
+\seealso{
+Other IXI functions: 
+\code{\link{get_IXI_brainstats_for_subjects}()},
+\code{\link{load_IXI_metadata}()}
+}
+\concept{IXI functions}

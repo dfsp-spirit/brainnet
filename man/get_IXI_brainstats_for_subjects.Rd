@@ -15,4 +15,10 @@ data.frame with brain stats
 \description{
 Load IXI brain stats and filter by subjects_list.
 }
+\seealso{
+Other IXI functions: 
+\code{\link{load_IXI_metadata}()},
+\code{\link{postproc_IXI_demographics}()}
+}
+\concept{IXI functions}
 \keyword{internal}

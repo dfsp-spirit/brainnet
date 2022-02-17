@@ -39,10 +39,18 @@ if(! dir.exists(subjects_dir)) {
 md = load_ABIDE_metadata_males(impute_data = TRUE);
 demographics = md$merged; # Extract the field that contains the merged brainstats and demographics.
 
-##### TODO: Create your own sample here. The sample should be a subset of the available data (rows) in the data.frame 'demographics' that must:
+##### YOUR TASK #1: Create your own sample here. The sample should be a subset of the available data (rows) in the data.frame 'demographics' that must:
 #####         1) follow your inclusion criteria (=> e.g.,define a suitable age range for your research question and filter the subjects accordingly)
 #####         2) not include bad quality scans (=> perform some sort of quality inspection of the data and filter subjects that do not pass the quality criteria)
 #####         3) achieve at least approximate balance between covariates for the groups (=> check for significant iq/age/... differences between controls and cases and reduce them using matching).
+#####
+#
+#
+# demographics = ... ## TODO: filter demographics here, as explained above. You will not get meaningful results without this step.
+
+## Here is a QC example:
+lh_segstats_file = file.path()
+fsbrain::qc.from.segstats.tables()
 
 
 subjects_list = as.character(demographics$subject_id);
@@ -59,7 +67,7 @@ hemi="split";   ## For which hemisphere to compute the results. One of 'lh' for 
 atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'aparc.a2009s' for Destrieux atlas, 'aparc.DKTatlas40' for DKT atlas, or your custom atlas. See https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation for details.
 
 
-## Aggregate the native space data by atlas region. Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table'.
+## Aggregate the native space data by atlas region. Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor.
 braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
 # fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");

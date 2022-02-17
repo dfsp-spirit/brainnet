@@ -5,6 +5,8 @@
 #'
 #' @return fixed df
 #'
+#' @family IXI functions
+#'
 #' @export
 postproc_IXI_demographics <- function(demographics) {
     demographics$DOB = as.Date(demographics$DOB, format="%Y-%m-%d");
@@ -62,6 +64,8 @@ postproc_IXI_demographics <- function(demographics) {
 #'
 #' @importFrom utils read.table
 #'
+#' @family IXI functions
+#'
 #' @keywords internal
 get_IXI_brainstats_for_subjects <- function(subjects_list) {
     brainstats_file = system.file("extdata", "IXI_brainstats_with_pial.txt", package = "brainnet", mustWork = TRUE);
@@ -84,6 +88,9 @@ get_IXI_brainstats_for_subjects <- function(subjects_list) {
 #' @note The column that you would expect to be named 'subject_id' is called 'subject_data_dirname' in demographics/merged, because the IXI ID is not the same as the FreeSurfer subject directory name here.
 #'
 #' @importFrom readxl read_excel
+#'
+#' @family IXI functions
+#'
 #' @export
 load_IXI_metadata <- function() {
     demographics_file = system.file("extdata", "IXI_demographics_filtered_fixed.xlsx", package = "brainnet", mustWork = TRUE);
