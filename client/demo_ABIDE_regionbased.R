@@ -19,7 +19,7 @@ library("ggplot2");   # general purpose plots
 
 do_plot=FALSE;
 
-subjects_dir = get_ABIDE_path_on_tims_machines(); # replace with the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
+subjects_dir = brainnet:::get_ABIDE_path_on_tims_machines(); # replace with the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 if(! dir.exists(subjects_dir)) {
     stop(sprintf("The subjects_dir '%s' does not exist.\n", subjects_dir));
 }
@@ -37,9 +37,10 @@ demographics = md$merged; # Extract the field that contains the merged brainstat
 # my_demographics = ... ## TODO: filter demographics here, as explained above. You will not get meaningful results without this step.
 
 ## Here is a QC example:
-segstats_files = aparcstats_files_ABIDE(measure = "thickness"); # There is no need to use the same measure for QC and your GLM analysis below, leave this alone if in doubt.
-qc = fsbrain::qc.from.segstats.tables(segstats_files$lh, segstats_files$rh); # You can provide your own files as well (and will need to do so if you do not use the ABIDE/IXI datasets for which we provide the files).
-bad_quality_subjects = unique(c(qc$lh$failed_subjects, qc$rh$failed_subjects));
+qc_segstats_files = aparcstats_files_ABIDE(measure = "thickness"); # There is no need to use the same measure for QC and your GLM analysis below, leave this alone if in doubt.
+qc = fsbrain::qc.from.segstats.tables(qc_segstats_files$lh, qc_segstats_files$rh); # You can provide your own files as well (and will need to do so if you do not use the ABIDE/IXI datasets for which we provide the files).
+# qc = fsbrain::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc"); # This could be used if you cannot get the files (which is very unlikely if you have the data required to run this command). It is *a lot* slower than reading the pre-computed file. You should NOT use this unless there really is no other way.
+bad_quality_subjects = unique(c(qc$lh$failed_subjects, qc$rh$failed_subjects)); # extract failed subjects from quality check results.
 my_demographics_qc = subset(demographics, !(demographics$subject_id %in% bad_quality_subjects)); # Remove all bad quality scans.
 cat(sprintf("Excluded %d of %d subjects due to bad scan quality. %d left.\n", length(bad_quality_subjects), nrow(demographics), nrow(my_demographics_qc)));
 
@@ -84,10 +85,16 @@ atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'apar
 
 
 ## Aggregate the native space data by atlas region. This takes quite a bit of time for a large data set (and slow hard disks/networks).
+#braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
+
 ## Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor. Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all, so the command only does trivial stuff and is very fast + needs to be run only once).
-braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
+model_data_segstats_files = aparcstats_files_ABIDE(measure = "thickness");
+braindata = read.segstats.table()
+
+
+## Optional: visualize the data for a subject.
 # fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
-# fsbrain:::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc");
+
 
 ## Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do not need to change it.
 braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
