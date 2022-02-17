@@ -208,8 +208,9 @@ load_ABIDE_metadata <- function(impute_data = TRUE, exclude_bad_quality=c("UM_1_
 #' @family ABIDE functions
 #'
 #' @export
-aparcstats_files_ABIDE <- function() {
-    stats_files = list("lh"=system.file("extdata", "ABIDE_aparcstats_thickness_lh.csv", package = "brainnet", mustWork = TRUE), "rh"=system.file("extdata", "ABIDE_aparcstats_thickness_rh.csv", package = "brainnet", mustWork = TRUE));
+aparcstats_files_ABIDE <- function(measure = "thickness") {
+    stats_files = list("lh"=system.file("extdata", sprintf("ABIDE_aparcstats_%s_lh.tsv", measure), package = "brainnet", mustWork = TRUE),
+                       "rh"=system.file("extdata", sprintf("ABIDE_aparcstats_%s_rh.tsv", measure), package = "brainnet", mustWork = TRUE));
     return(stats_files);
 }
 
