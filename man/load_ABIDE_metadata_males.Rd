@@ -23,6 +23,7 @@ Load ABIDE demographics and brain stats and filter so that only subjects from th
 \seealso{
 Other ABIDE functions: 
 \code{\link{aparcstats_files_ABIDE}()},
+\code{\link{aparcstats_files_IXI}()},
 \code{\link{load_ABIDE_metadata}()}
 }
 \concept{ABIDE functions}

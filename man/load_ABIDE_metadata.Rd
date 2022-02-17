@@ -23,6 +23,7 @@ Load ABIDE demographics and brain stats for all subjects with structural imaging
 \seealso{
 Other ABIDE functions: 
 \code{\link{aparcstats_files_ABIDE}()},
+\code{\link{aparcstats_files_IXI}()},
 \code{\link{load_ABIDE_metadata_males}()}
 }
 \concept{ABIDE functions}

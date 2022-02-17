@@ -5,10 +5,11 @@
 #
 # Written by Tim Schäfer, 2022-01-22
 
-library("brainnet");
+library("brainnet");  # this package
 library("fsbrain");   # loading neuroimaging data and visualizing results.
-library("readxl");    # read Excel demographcis file
+library("readxl");    # to read Excel demographics files
 library("MatchIt");   # matching of patient/control groups
+library("Rglpk");     # a solver for cardinality matching with MatchIt using the "glpk" solver (the default in this script). Requires sys deps, e.g., `sudo apt install libglpk-dev` under Linux. Use Homebrew to get it under MacOS.
 library("ggplot2");   # general purpose plots
 #library("slmtools");  # internal R package of Ecker neuroimaging group for mass-univariate GLM analysis. not needed for this version of the script.
 
@@ -18,20 +19,7 @@ library("ggplot2");   # general purpose plots
 
 do_plot=FALSE;
 
-if(brainnet:::get_os() == "linux") {
-    study_dir = "~/nas/projects/abide";
-    if(! dir.exists(study_dir)) {
-        study_dir = sprintf("/media/%s/science/data/abide", Sys.getenv("LOGNAME"));
-    }
-} else {
-    study_dir = "/Volumes/shared/projects/abide";
-}
-
-if(dir.exists("~/data/abide_min")) {
-    study_dir = "~/data/abide_min"; # use local minimal data dir if available, loading from a local SSD is much faster than loading via LAN from the NAS.
-}
-
-subjects_dir = file.path(study_dir, "structural"); # the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
+subjects_dir = get_ABIDE_path_on_tims_machines(); # replace with the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 if(! dir.exists(subjects_dir)) {
     stop(sprintf("The subjects_dir '%s' does not exist.\n", subjects_dir));
 }
@@ -52,14 +40,34 @@ demographics = md$merged; # Extract the field that contains the merged brainstat
 segstats_files = aparcstats_files_ABIDE(measure = "thickness"); # There is no need to use the same measure for QC and your GLM analysis below, leave this alone if in doubt.
 qc = fsbrain::qc.from.segstats.tables(segstats_files$lh, segstats_files$rh); # You can provide your own files as well (and will need to do so if you do not use the ABIDE/IXI datasets for which we provide the files).
 bad_quality_subjects = unique(c(qc$lh$failed_subjects, qc$rh$failed_subjects));
-my_demographics = subset(demographics, !(demographics$subject_id %in% bad_quality_subjects)); # Remove all bad quality scans.
-cat(sprintf("Excluded %d of %d subjects due to bad scan quality.\n", length(bad_quality_subjects), nrow(demographics)));
+my_demographics_qc = subset(demographics, !(demographics$subject_id %in% bad_quality_subjects)); # Remove all bad quality scans.
+cat(sprintf("Excluded %d of %d subjects due to bad scan quality. %d left.\n", length(bad_quality_subjects), nrow(demographics), nrow(my_demographics_qc)));
 
+## Here is an example for inclusion/exclusion criteria: we only keep subjects with IQ >= 70 and age between 12 and 18 years.
+my_demographics_qc_incl = my_demographics_qc;
+my_demographics_qc_incl = subset(my_demographics_qc_incl, (my_demographics_qc_incl$age >= 12 & my_demographics_qc_incl$age <= 18)); # Filter for age range.
+my_demographics_qc_incl = subset(my_demographics_qc_incl, (my_demographics_qc_incl$iq >= 70.0)); # Filter by IQ.
+num_excluded_by_inclusion_criteria = nrow(my_demographics_qc) - nrow(my_demographics_qc_incl);
+cat(sprintf("Excluded %d of %d subjects due to inclusion criteria. %d left.\n", num_excluded_by_inclusion_criteria, nrow(demographics), nrow(my_demographics_qc_incl)));
 
+## Now for the matching. We use cardinality matching here, but that may not be what you want. Read the documentation for MatchIt to see (many!) other options!
+## The variables you need to match on also depend on your research question (mainly on the descriptor used).
+solver = "glpk"; # use "gurobi" if you have or can install it, or "glpk" if you do not have gurobi. See the MatchIt documentation for reasons.
+mymatch = MatchIt::matchit(group ~ age + iq + totalBrainVolume, data = my_demographics_qc_incl, method = "cardinality", solver = solver, time = 60*5);
+## Show an overview of the improvements/changes before and after matching. You should look at this for various matching algorithms/settings.
+# summary(mymatch);
+## Get the matched data.
+my_demographics_qc_incl_matched = MatchIt::match.data(mymatch);
+my_demographics_qc_incl_matched$weights = NULL; # delete the 'weights' column added by matching, it is useless (all ones) in the case of cardinality matching.
+num_excluded_by_matching = nrow(my_demographics_qc_incl) - nrow(my_demographics_qc_incl_matched);
+cat(sprintf("Excluded %d of %d subjects due to matching. %d left.\n", num_excluded_by_matching, nrow(demographics), nrow(my_demographics_qc_incl_matched)));
 
+## All done, use our modified demographics.
+demographics = my_demographics_qc_incl_matched;
 
-## Your sample should be complete by this line.
-demographics = my_demographics;
+#################################################################################################
+##### Your sample should be complete by this line, with results in variable 'demographics'. #####
+#################################################################################################
 
 subjects_list = as.character(demographics$subject_id);
 
