@@ -37,7 +37,7 @@ Under Ubuntu and other Debian-based distros, this should get you started:
 sudo apt install libglpk-dev
 ```
 
-If you want to use the 3D visualization functions (highly recommended), you should also install the system dependencies for the `fsbrain` package, as explained on the [fsbrain project page](https://github.com/dfsp-spirit/fsbrain).
+If you want to use the 3D visualization functions (highly recommended), you should also install the system dependencies for the `fsbrain` package, as explained on the [fsbrain project page](https://github.com/dfsp-spirit/fsbrain). The `fsbrain` package is a dependency of this package and R will try to install it automatically when you install `brainnet`.
 
 If you want to compile manually under MacOS instead of using the available binary packages (advanced users), you probably know that you can get the required libraries using Homebrow or MacPorts. If you want to compile under Windows we cannot provide any assistance, we recommend to use the pre-compiled packages for that OS unless you know what you are doing.
 
