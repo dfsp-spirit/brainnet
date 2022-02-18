@@ -9,7 +9,7 @@ The [client scripts](./client) that come with the package demonstrate how to run
 
 The package also provides functions and aggregated data that make it very easy to work with the publicly available [ABIDE](https://fcon_1000.projects.nitrc.org/indi/abide/) and [IXI](https://brain-development.org/ixi-dataset/) data sets. These data sets are also used in the client scripts to demonstrate analysis pipelines.
 
-This package is intended mainly for internal use, and for student projects in our working group. It will not be published on CRAN as it is very specific to what we do.
+This package is intended mainly for internal use, and for student projects in our working group. It will not be published on [CRAN](https://cran.r-project.org/) as it is very specific to what we do.
 
 ## State
 
