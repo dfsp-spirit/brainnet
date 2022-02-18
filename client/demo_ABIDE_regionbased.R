@@ -88,8 +88,8 @@ atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'apar
 braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
 
 ## Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor. Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all, so the command only does trivial stuff and is very fast + needs to be run only once).
-model_data_segstats_files = aparcstats_files_ABIDE(measure = "thickness");
-#braindata = read.segstats.table()
+#model_data_segstats_files = aparcstats_files_ABIDE(measure = "thickness");
+#braindata = region.data.from.segstat.tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
 
 
 ## Optional: visualize the data for a subject.
@@ -107,7 +107,7 @@ glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject
 
 ## Run the GLMs (on per atlas region/hemi)
 considered_atlas_regions = names(braindata);
-considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"];
+considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"]; # ignore subject column (it's not a region).
 
 region_idx = 1L;
 region_fits = list();
