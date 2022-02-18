@@ -85,11 +85,11 @@ atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'apar
 
 
 ## Aggregate the native space data by atlas region. This takes quite a bit of time for a large data set (and slow hard disks/networks).
-#braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
+braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
 
 ## Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor. Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all, so the command only does trivial stuff and is very fast + needs to be run only once).
 model_data_segstats_files = aparcstats_files_ABIDE(measure = "thickness");
-braindata = read.segstats.table()
+#braindata = read.segstats.table()
 
 
 ## Optional: visualize the data for a subject.
