@@ -25,7 +25,7 @@ devtools::install_github("dfsp-spirit/brainnet");
 ```
 ### System dependencies
 
-Note: *This section only applies if you compile from source (typically only under Linux). You can completely ignore it if you are not doing that.*
+Note: *This section only applies if you compile from source (typically only under Linux). You can completely ignore it if you are not doing that. If you are under MacOS or Windows and are unsure, you are NOT doing it.*
 
 If you install from source (the default under Linux), make sure to install the system dependencies if the installation fails, then re-run the command above.
 
