@@ -1,8 +1,8 @@
 
 
-#' @title Read aparcstats or segstats table file created by FreeSurfer tools.
+#' @title Read aparcstats or segstats table file created by FreeSurfer tool 'aparcstats2table' or 'asegstats2table'.
 #'
-#' @param filepath character string, the path to the file.
+#' @param filepath character string, the path to the aparcstats or asegstats file.
 #'
 #' @return data.frame with seg/parc stats
 #'

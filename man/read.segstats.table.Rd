@@ -2,16 +2,16 @@
 % Please edit documentation in R/load_data.R
 \name{read.segstats.table}
 \alias{read.segstats.table}
-\title{Read aparcstats or segstats table file created by FreeSurfer tools.}
+\title{Read aparcstats or segstats table file created by FreeSurfer tool 'aparcstats2table' or 'asegstats2table'.}
 \usage{
 read.segstats.table(filepath)
 }
 \arguments{
-\item{filepath}{character string, the path to the file.}
+\item{filepath}{character string, the path to the aparcstats or asegstats file.}
 }
 \value{
 data.frame with seg/parc stats
 }
 \description{
-Read aparcstats or segstats table file created by FreeSurfer tools.
+Read aparcstats or segstats table file created by FreeSurfer tool 'aparcstats2table' or 'asegstats2table'.
 }

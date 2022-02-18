@@ -17,12 +17,12 @@ Imports:
     MatchIt,
     ggplot2,
     mice,
-    reshape2
+    reshape2,
+    fsbrain (>= 0.5.3),
+    Rglpk
 Suggests:
     knitr,
     rmarkdown,
-    testthat (>= 2.1.0),
-    fsbrain,
-    Rglpk
+    testthat (>= 2.1.0)
 VignetteBuilder: knitr
 RoxygenNote: 7.1.2
