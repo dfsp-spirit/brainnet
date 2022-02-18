@@ -23,9 +23,28 @@ To install this package from an R session (switch to the *console* tab in Rstudi
 install.packages("remotes");
 devtools::install_github("dfsp-spirit/brainnet");
 ```
+### System dependencies
+
+Note: *This section only applies if you compile from source (typically only under Linux). You can completely ignore it if you are not doing that. *
+
+If you install from source (the default under Linux), make sure to install the system dependencies if the installation fails, then re-run the command above.
+
+The only system dependency of this package is `libglpk-dev`, and it is only required if you want to use the automated sample matching functions with the `glpk` solver (which is part of the `Rglpk` R package).
+
+Under Ubuntu and other Debian-based distros, this should get you started:
+
+```shell
+sudo apt install libglpk-dev
+```
+
+If you want to use the 3D visualization functions (highly recommended), you should also install the system dependencies for the `fsbrain` package, as explained on the [fsbrain project page](https://github.com/dfsp-spirit/fsbrain).
+
+If you want to compile manually under MacOS instead of using the available binary packages (advanced users), you probably know that you can get the required libraries using Homebrow or MacPorts. If you want to compile under Windows we cannot provide any assistance, we recommend to use the pre-compiled packages for that OS unless you know what you are doing.
 
 ## Usage
 
-The best way to get started is to load the package and have a look at the demo scripts in the [client directory](./client).
+The best way to get started is to load the package and have a look at the demo scripts in the [client directory](./client). 
 
 You can get help for all package functions by running `help(package="brainnet")` in R.
+
+Note: Not all examples are complete, and you will have to adapt them substantially to your research question and sample. That is intended. You do NOT have to use these scripts, or the exact methods, functions and parameters in it: they are nothing but examples. Feel free to write your own analysis pipeline from scratch if you prefer that.
