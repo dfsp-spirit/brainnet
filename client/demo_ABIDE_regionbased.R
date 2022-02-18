@@ -83,20 +83,27 @@ measure="thickness";  ## The native space descriptor to load from the subjects '
 hemi="split";   ## For which hemisphere to compute the results. One of 'lh' for left only, 'rh' for right only, or 'split' to compute (separately) for both hemispheres.
 atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'aparc.a2009s' for Destrieux atlas, 'aparc.DKTatlas40' for DKT atlas, or your custom atlas. See https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation for details.
 
+#############################
+##### Now load the data #####
+#############################
 
-## Aggregate the native space data by atlas region. This takes quite a bit of time for a large data set (and slow hard disks/networks).
-braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas, cache_file = sprintf("cache_ABIDE_%s_%s_%s.Rdata", measure, hemi, atlas));
+## There are 2 options:
 
-## Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor. Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all, so the command only does trivial stuff and is very fast + needs to be run only once).
-#model_data_segstats_files = aparcstats_files_ABIDE(measure = "thickness");
-#braindata = region.data.from.segstat.tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
+## Option 1) Aggregate the native space data by atlas region from the raw per-vertex data files and parcellations. This takes quite a bit of time for a large data set (and slow hard disks/networks).
+#braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas);
+
+## Option 2) Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor (one file per hemi). Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all, so the command only does trivial stuff and is very fast + needs to be run only once).
+model_data_segstats_files = aparcstats_files_ABIDE(measure = measure); # for ABIDE, we ship the files with this package.
+braindata = region.data.from.segstat.tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
 
 
 ## Optional: visualize the data for a subject.
-# fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = "thickness");
+# fsbrain::vis.subject.morph.native(subjects_dir, "UM_1_0050272", measure = measure);
 
 
 ## Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do not need to change it.
+## These columns contain only NAN values.
+## You may not have these columns if you used 'region.data.from.segstat.tables()' to load the data, but even then these lines won't hurt.
 braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
 braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
 braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.

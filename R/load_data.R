@@ -57,18 +57,20 @@ convert.segstats.table.format <- function(dt) {
     # Rename first column to 'subject'.
     names(dt)[names(dt) == table_type] = 'subject';
 
+    # We need to remove the mean column (named something like "lh_MeanThickness_thickness") if it exists.
+    # However, it does not seem to exist in all cases (mabye it is descriptor-specific, and exists only for thickness)?
+    dt$lh_MeanThickness_thickness = NULL; # this wont hurt even if the column does not exist.
+    dt$rh_MeanThickness_thickness = NULL;
+
     # Strip measure from column names:
     # Change the column names from something like 'lh_lateraloccipital_thickness' to 'lh_lateraloccipital'.
     for(coln in colnames(dt)) {
         suffix = sprintf("_%s", measure);
         if(endsWith(coln, suffix)) {
-            new_coln =
+            new_coln = substring(coln, 1L, nchar(coln)-nchar(suffix));
             names(dt)[names(dt) == coln] = new_coln;
         }
     }
-
-    # We still need to remove the mean column (named something like "lh_MeanThickness_thickness").
-    # However, it does not seem to exist in all cases. Maybe we leave it to the user?
 
     return(dt);
 }
