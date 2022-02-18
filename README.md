@@ -24,7 +24,7 @@ install.packages("remotes");
 remotes::install_github("dfsp-spirit/brainnet", dependencies=TRUE);
 ```
 
-### System dependencies
+#### System dependencies
 
 Note: *This section only applies if you compile from source (typically only under Linux). You can completely ignore it if you are not doing that. If you are under MacOS or Windows and are unsure, you are almost certainly NOT doing it.*
 
