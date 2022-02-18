@@ -48,4 +48,7 @@ The best way to get started is to load the package and have a look at the demo s
 
 You can get help for all package functions by running `help(package="brainnet")` in R.
 
-Note: Not all examples are complete, and you will have to adapt them substantially to your research question and sample. That is intended. You do NOT have to use these scripts, or the exact methods, functions and parameters in it: they are nothing but examples. Feel free to write your own analysis pipeline from scratch if you prefer that.
+Notes:
+
+* Not all examples are complete, and you will have to adapt them substantially to your research question and sample.
+* You do NOT have to use these scripts, or the exact methods, functions and parameters in it: they are nothing but examples. Feel free to write your own analysis pipeline from scratch if you prefer that.
