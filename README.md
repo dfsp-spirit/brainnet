@@ -15,6 +15,17 @@ This is still work in progress, come back another day.
 
 ## Installation
 
-You will need a recent R version installed on your system, we recommend to install from the official website.
+You will need a recent R version installed on your system. We recommend to install R for your operating system from the [official R website](https://www.r-project.org/). We also recommend to install the free personal edition of the [rstudio IDE](https://www.rstudio.com/products/rstudio/) after you have installed R itself, but that is optional.
 
+To install this package from an R session (switch to the *console* tab in Rstudio):
 
+```R
+install.packages("remotes");
+devtools::install_github("dfsp-spirit/brainnet");
+```
+
+## Usage
+
+The best way to get started is to load the package and have a look at the demo scripts in the [client directory](./client).
+
+You can get help for all package functions by running `help(package="brainnet")` in R.
