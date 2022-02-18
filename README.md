@@ -37,12 +37,16 @@ The only system dependency of this package is `libglpk-dev`, and it is only requ
 Under Ubuntu and other Debian-based distros, this should get you started:
 
 ```shell
-sudo apt install libglpk-dev
+sudo apt-get install libglpk-dev
 ```
 
-If you want to use the 3D visualization functions (highly recommended), you should also install the system dependencies for the `fsbrain` package, as explained on the [fsbrain project page](https://github.com/dfsp-spirit/fsbrain). The `fsbrain` package is a dependency of this package and R will try to install it automatically when you install `brainnet`.
+If you want to use the 3D visualization functions (highly recommended), you should also install the system dependencies for the `fsbrain` package, as explained on the [fsbrain project page](https://github.com/dfsp-spirit/fsbrain). The `fsbrain` package is a dependency of this package and R will try to install it automatically when you install `brainnet`. At the time of writing, this will do it for Debian-based systems:
 
-If you want to compile manually under MacOS instead of using the available binary packages (advanced users), you probably know that you can get the required libraries using Homebrow or MacPorts. If you want to compile under Windows we cannot provide any assistance, we recommend to use the pre-compiled packages for that OS unless you know what you are doing.
+```shell
+sudo apt-get install libmagick++-dev libx11-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libfreetype6-dev libxml2-dev libssh-dev libcurl4-openssl-dev libgfortran4
+```
+
+If you want to compile manually under MacOS instead of using the available binary packages (advanced users), you probably know that you can get the required libraries using Homebrow or MacPorts. Don't forget about X11, see the [fsbrain project page](https://github.com/dfsp-spirit/fsbrain) for details. If you want to compile under Windows we cannot provide any assistance, we recommend to use the pre-compiled packages for that OS unless you know what you are doing.
 
 ## Usage
 
