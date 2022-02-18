@@ -21,7 +21,7 @@ To install this package from an R session (switch to the *console* tab in Rstudi
 
 ```R
 install.packages("remotes");
-devtools::install_github("dfsp-spirit/brainnet");
+remotes::install_github("dfsp-spirit/brainnet");
 ```
 ### System dependencies
 
