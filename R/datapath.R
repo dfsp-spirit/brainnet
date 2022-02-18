@@ -7,7 +7,7 @@
 #'
 #' @keywords internal
 get_ABIDE_path_on_tims_machines <- function() {
-    if(brainnet:::get_os() == "linux") {
+    if(get_os() == "linux") {
         study_dir = "~/nas/projects/abide";
         if(! dir.exists(study_dir)) {
             study_dir = sprintf("/media/%s/science/data/abide", Sys.getenv("LOGNAME"));

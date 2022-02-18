@@ -15,14 +15,15 @@ This is still work in progress, come back another day.
 
 ## Installation
 
-You will need a recent R version installed on your system. We recommend to install R for your operating system from the [official R website](https://www.r-project.org/). We also recommend to install the free personal edition of the [rstudio IDE](https://www.rstudio.com/products/rstudio/) after you have installed R itself, but that is optional.
+You will need R installed on your system. We recommend to install a recent R version for your operating system from the [official R website](https://www.r-project.org/). We also suggest to install the free personal edition of the [Rstudio IDE](https://www.rstudio.com/products/rstudio/) after you have installed R itself, but that is optional.
 
 To install this package from an R session (switch to the *console* tab in Rstudio):
 
 ```R
 install.packages("remotes");
-remotes::install_github("dfsp-spirit/brainnet");
+remotes::install_github("dfsp-spirit/brainnet", dependencies=TRUE);
 ```
+
 ### System dependencies
 
 Note: *This section only applies if you compile from source (typically only under Linux). You can completely ignore it if you are not doing that. If you are under MacOS or Windows and are unsure, you are almost certainly NOT doing it.*
