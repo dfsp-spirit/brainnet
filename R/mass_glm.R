@@ -4,6 +4,8 @@
 #'
 #' @author C Ecker
 #'
+#' @inheritParams slm_effect_sizes
+#'
 #' @importFrom magrittr %>%
 #'
 #' @keywords internal
@@ -57,7 +59,11 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 
 #' @title Compute t map for mass-univariate GLM analysis.
 #'
+#' @inheritParams slm_effect_sizes
+#'
 #' @author C Ecker
+#'
+#' @importFrom stats pt, p.adjust
 #'
 #' @keywords internal
 slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
@@ -91,12 +97,22 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 }
 
 
-#' @title Threshold a statistical map.
+#' @title Threshold a statistical map by setting all values with p > alpha to NaN.
 #'
 #' @author C Ecker
 #'
+#' @param x vector of values
+#'
+#' @param p the p-values for the x values
+#'
+#' @param alpha the alpha level
+#'
+#' @param p.adjust.method passed on to \code{stats::p.adjust}
+#'
+#' @importFrom stats p.adjust
+#'
 #' @keywords internal
-slm_threshold_statistical_map <- function(x, p, alpha, p.adjust.method="none") {
+slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="none") {
 
     p <- stats::p.adjust(p, method = p.adjust.method)
     x[p > alpha] = NaN
@@ -108,6 +124,16 @@ slm_threshold_statistical_map <- function(x, p, alpha, p.adjust.method="none") {
 #' @title Compute effect sizes for mass-univariate GLM analysis.
 #'
 #' @author C Ecker
+#'
+#' @param X numerical matrix, the design or model matrix, typically created from the demographics data using \code{stats::model.matrix}.
+#'
+#' @param Y numerical matrix, the target value, typically neuroimaging data
+#'
+#' @param predictors vector of character strings, the names of the predictors in the model matrix
+#'
+#' @param output vector of pre-defined character strings, defined what values to return. Leave alone if in doubt.
+#'
+#' @return see output parameter
 #'
 #' @importFrom magrittr %>%
 #' @importFrom pwr pwr.f2.test

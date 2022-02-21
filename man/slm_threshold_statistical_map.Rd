@@ -2,12 +2,21 @@
 % Please edit documentation in R/mass_glm.R
 \name{slm_threshold_statistical_map}
 \alias{slm_threshold_statistical_map}
-\title{Threshold a statistical map.}
+\title{Threshold a statistical map by setting all values with p > alpha to NaN.}
 \usage{
-slm_threshold_statistical_map(x, p, alpha, p.adjust.method = "none")
+slm_threshold_statistical_map(x, p, alpha = 0.05, p.adjust.method = "none")
+}
+\arguments{
+\item{x}{vector of values}
+
+\item{p}{the p-values for the x values}
+
+\item{alpha}{the alpha level}
+
+\item{p.adjust.method}{passed on to \code{stats::p.adjust}}
 }
 \description{
-Threshold a statistical map.
+Threshold a statistical map by setting all values with p > alpha to NaN.
 }
 \author{
 C Ecker
