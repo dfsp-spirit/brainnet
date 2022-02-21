@@ -19,7 +19,9 @@ Imports:
     mice,
     reshape2,
     fsbrain (>= 0.5.3),
-    Rglpk
+    Rglpk,
+    magrittr,
+    pwr
 Suggests:
     knitr,
     rmarkdown,
