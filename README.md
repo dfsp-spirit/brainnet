@@ -37,7 +37,7 @@ The only system dependency of this package is `libglpk-dev`, and it is only requ
 Under Ubuntu and other Debian-based distros, this should get you started:
 
 ```shell
-sudo apt-get install libglpk-dev
+sudo apt-get install libglpk-dev libnlopt-dev
 ```
 
 If you want to use the 3D visualization functions (highly recommended), you should also install the system dependencies for the `fsbrain` package, as explained on the [fsbrain project page](https://github.com/dfsp-spirit/fsbrain). The `fsbrain` package is a dependency of this package and R will try to install it automatically when you install `brainnet`. At the time of writing, this will do it for Debian-based systems:
