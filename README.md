@@ -32,8 +32,6 @@ Note: *This section only applies if you compile from source (typically only unde
 
 If you install from source (the default under Linux), make sure to install the system dependencies if the installation fails, then re-run the command above.
 
-The only system dependency of this package is `libglpk-dev`, and it is only required if you want to use the automated sample matching functions with the `glpk` solver (which is part of the `Rglpk` R package).
-
 Under Ubuntu and other Debian-based distros, this should get you started:
 
 ```shell
