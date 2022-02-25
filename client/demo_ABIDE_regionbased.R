@@ -199,7 +199,7 @@ if(do_use_slmtools) {
             measure_values = slm_res[[measure_to_plot]][predictor, ];
             lh_region_value_list = measure_values[startsWith(names(measure_values), "lh")];
             rh_region_value_list = measure_values[startsWith(names(measure_values), "rh")];
-            # our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes, and we have 34 instead of 36 regions (due to ignored NAN regions), we we need to do some manual adaptations.
+            # our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes, and we have 34 instead of 36 regions (due to ignored NAN regions), so the plot function cannot decide which values belong to which region, and we need to do some manual adaptations. We fix the names.
             names(lh_region_value_list) = substring(names(lh_region_value_list), 4); # remove prefix 'lh_'
             names(rh_region_value_list) = substring(names(rh_region_value_list), 4); # remove prefix 'rh_'
             cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = lh_region_value_list, rh_region_value_list = rh_region_value_list, atlas = atlas, views = NULL);
