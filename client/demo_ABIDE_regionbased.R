@@ -190,18 +190,26 @@ if(do_use_slmtools) {
 
     if(do_plot) {
 
-        measure_to_plot = "cohens.f";
+        measure_to_plot = "cohens.f"; # can use "cohens.f", "etasq", or "power".
 
         #visualization of per vertex effect sizes of group on fsaverage.
         for(pred_idx in seq.int(length(predictors))) {
             predictor = predictors[pred_idx];
-            cm = fsbrain::vis.data.on.subject(subjects_dir, "fsaverage", morph_data_both = slm_res[[measure_to_plot]][pred_idx,], views=NULL);
+
+            measure_values = slm_res[[measure_to_plot]][predictor, ];
+            lh_region_value_list = measure_values[startsWith(names(measure_values), "lh")];
+            rh_region_value_list = measure_values[startsWith(names(measure_values), "rh")];
+            # our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes, and we have 34 instead of 36 regions (due to ignored NAN regions), we we need to do some manual adaptations.
+            names(lh_region_value_list) = substring(names(lh_region_value_list), 4); # remove prefix 'lh_'
+            names(rh_region_value_list) = substring(names(rh_region_value_list), 4); # remove prefix 'rh_'
+            cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = lh_region_value_list, rh_region_value_list = rh_region_value_list, atlas = atlas, views = NULL);
+
             output_img = sprintf("%s_%s.png", measure_to_plot, predictor);
             cat(sprintf("Writing %s figure for predictor '%s' to file: %s\n", measure_to_plot, predictor, output_img));
             fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure_to_plot, predictor));
         }
 
-        # Effect size violin plot for all predictors.
+        # A single effect size (or whatever) violin plot for all predictors.
         brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]]);
     }
 
