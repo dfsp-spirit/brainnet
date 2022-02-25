@@ -7,6 +7,10 @@
 #' @importFrom ggplot2 ggplot coord_flip geom_violin geom_boxplot theme_light theme element_text ylab scale_x_discrete scale_fill_brewer scale_color_brewer
 #'
 #' @return a ggplot instance.
+#'
+#' @author Johanna Leyhausen
+#'
+#' @export
 effect_size_violin_plots <- function(effects_mat) {
     tdata <- t(as.data.frame(effects_mat)); #transpose data
     mdata <- reshape2::melt(tdata, id=rownames(effects_mat)); # Reshape data to long format for usewith  ggplot.

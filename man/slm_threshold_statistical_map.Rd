@@ -21,4 +21,3 @@ Threshold a statistical map by setting all values with p > alpha to NaN.
 \author{
 C Ecker
 }
-\keyword{internal}

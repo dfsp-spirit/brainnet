@@ -19,4 +19,3 @@ Compute t map for mass-univariate GLM analysis.
 \author{
 C Ecker
 }
-\keyword{internal}

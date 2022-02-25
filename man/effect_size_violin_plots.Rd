@@ -15,3 +15,6 @@ a ggplot instance.
 \description{
 Create effect size violin plots for all predictors at once.
 }
+\author{
+Johanna Leyhausen
+}

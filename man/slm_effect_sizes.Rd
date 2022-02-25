@@ -29,4 +29,3 @@ Compute effect sizes for mass-univariate GLM analysis.
 \author{
 C Ecker
 }
-\keyword{internal}

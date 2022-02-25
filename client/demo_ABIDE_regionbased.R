@@ -109,7 +109,7 @@ braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
 braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
 braindata$rh_unknown = NULL; # Same for other hemisphere.
 
-## Merge the brain data with the demographics.
+## Merge the brain data with the demographics. This is an inner join, so it discards braindata for subjects which are not in the filtered demographics.
 glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject");
 
 ## Run the GLMs (on per atlas region/hemi)
@@ -172,7 +172,39 @@ if(do_plot) {
 }
 
 
+##### Completely optional: a demonstration of how to achieve the same GLM results with the slmtools functions.
+#####                      These functions are a lot faster, which is required for vertex-wise comparisons. Here we
+#####                      illustrate how they can be used for region-wise analysis (even though they are not required in that case).
+##### The slmtools function require the data in a different format than the `glm` function used above, therefore we need
+####  to do some data restructuring before we can start.
+do_use_slmtools = FALSE;
+if(do_use_slmtools) {
+    slm_braindata = subset(braindata, braindata$subject %in% demographics$subject_id);
+    slm_braindata$subject = NULL; # remove non-numerical column.
+    slm_braindata = data.matrix(slm_braindata);
 
+    mm <- model.matrix(~ factor(demographics$group) + demographics$age + demographics$iq + factor(demographics$site) + demographics$totalMeanCorticalThickness);
 
+    predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors
+    slm_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
+
+    if(do_plot) {
+
+        measure_to_plot = "cohens.f";
+
+        #visualization of per vertex effect sizes of group on fsaverage.
+        for(pred_idx in seq.int(length(predictors))) {
+            predictor = predictors[pred_idx];
+            cm = fsbrain::vis.data.on.subject(subjects_dir, "fsaverage", morph_data_both = slm_res[[measure_to_plot]][pred_idx,], views=NULL);
+            output_img = sprintf("%s_%s.png", measure_to_plot, predictor);
+            cat(sprintf("Writing %s figure for predictor '%s' to file: %s\n", measure_to_plot, predictor, output_img));
+            fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure_to_plot, predictor));
+        }
+
+        # Effect size violin plot for all predictors.
+        brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]]);
+    }
+
+}
 
 

@@ -8,7 +8,7 @@
 #'
 #' @importFrom magrittr %>%
 #'
-#' @keywords internal
+#' @export
 slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 
     X.full <- X
@@ -63,9 +63,9 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 #'
 #' @author C Ecker
 #'
-#' @importFrom stats pt, p.adjust
+#' @importFrom stats p.adjust
 #'
-#' @keywords internal
+#' @export
 slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 
     term <- grep(model.term, colnames(X)) # looks for model term index
@@ -87,7 +87,7 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
     se.b <- sqrt(var.b) # coefficient standard error
 
     t <- b[term,] / se.b # t value for term
-    p <- 2 * stats::pt(t, df) # p-value for t
+    p <- 2 * pt(t, df) # p-value for t
     p.adjust <- stats::p.adjust(p, method = "fdr") # FDR adjusted p value
 
     return.obj <- lapply(output, function(x) {get(x, inherits = TRUE)})
@@ -111,7 +111,7 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 #'
 #' @importFrom stats p.adjust
 #'
-#' @keywords internal
+#' @export
 slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="none") {
 
     p <- stats::p.adjust(p, method = p.adjust.method)
@@ -139,7 +139,7 @@ slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="non
 #' @importFrom pwr pwr.f2.test
 #' @importFrom stats pf
 #'
-#' @keywords internal
+#' @export
 slm_effect_sizes <- function(X, Y, predictors, output = c("F", "p", "etasq", "partial.etasq", "cohens.f", "rsq", "power")) {
 
     X.full <- X
