@@ -210,7 +210,7 @@ if(do_use_slmtools) {
         }
 
         # A single effect size (or whatever) violin plot for all predictors.
-        brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]]);
+        brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]], plot_ylabel=measure_to_plot);
     }
 
 }

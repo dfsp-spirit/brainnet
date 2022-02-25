@@ -4,10 +4,12 @@
 \alias{effect_size_violin_plots}
 \title{Create effect size violin plots for all predictors at once.}
 \usage{
-effect_size_violin_plots(effects_mat)
+effect_size_violin_plots(effects_mat, plot_ylabel = "Effect Size (Cohen's f)")
 }
 \arguments{
 \item{effects_mat}{n*m matrix in which the n rownames are the predictors (like age, sex, site, ...) and the m columns contain the effect sizes for the m vertices.}
+
+\item{plot_ylabel}{character string, the y label text for the plot.}
 }
 \value{
 a ggplot instance.
