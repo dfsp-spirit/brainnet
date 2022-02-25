@@ -159,7 +159,7 @@ pvalues_by_hemi = fsbrain::hemilist.from.prefixed.list(pvalues_group); # split t
 cat(sprintf("There are %d significant regions out of %d regions total BEFORE correction for multiple comparisons.\n", length(which(unlist(pvalues_by_hemi) < sig_level)), length(considered_atlas_regions)));
 if(do_plot) {
     cm_p = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = pvalues_by_hemi$lh, rh_region_value_list = pvalues_by_hemi$rh, atlas = atlas, views = NULL);
-    fsbrain::export(cm_p, colorbar_legend = "Uncorrected p value for group effect", output_img = "abide_regions_group_pvalue.png");
+    fsbrain::export(cm_p, colorbar_legend = "Uncorrected p value for group effect", output_img = "abide_regions_group_pvalue_uncorrected.png");
 }
 
 # Multiple-comparison correction for p values (over #regions*hemis):
@@ -168,7 +168,7 @@ cat(sprintf("There are %d significant regions out of %d regions total AFTER corr
 print(which(p_adj < sig_level));
 if(do_plot) {
     cm_p_adj = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = p_adj[startsWith(names(p_adj), "lh")], rh_region_value_list = p_adj[startsWith(names(p_adj), "rh")], atlas = atlas, views = NULL);
-    fsbrain::export(cm_p_adj, colorbar_legend = "Corrected p value for group effect", output_img = "abide_regions_group_pvalue.png");
+    fsbrain::export(cm_p_adj, colorbar_legend = "Corrected p value for group effect", output_img = "abide_regions_group_pvalue_fdr_corrected.png");
 }
 
 
