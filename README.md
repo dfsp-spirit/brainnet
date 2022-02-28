@@ -30,12 +30,6 @@ install.packages("remotes");
 remotes::install_github("dfsp-spirit/brainnet", dependencies=TRUE);
 ```
 
-## Using the scripts ##
-
-Once you have installed the `brainnet` package (see above), I would suggest to download a copy of one of the demo scripts to your computer. Create a new directory for all your analyses, place the file there, and open it in Rstudio to edit it. 
-
-E.g., download the file (client/demo_ABIDE_regionbased.R)[https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.R] here.
-
 #### System dependencies
 
 Note: *This section only applies if you compile from source (typically only under Linux). You can completely ignore it if you are not doing that. If you are under MacOS or Windows and are unsure, you are almost certainly NOT doing it.*
@@ -58,13 +52,16 @@ If you want to compile manually under MacOS instead of using the available binar
 
 ## Usage
 
-The best way to get started is to load the package and have a look at the demo scripts in the [client directory](./client). 
+Once you have installed the `brainnet` package (see above), I would suggest to download a copy of one of the demo scripts to your computer. Create a new directory for all your analyses, place the file there, and open it in Rstudio to edit it. 
 
-You can get help for all package functions by running `help(package="brainnet")` in R.
+E.g., download the file (client/demo_ABIDE_regionbased.R)[https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.R] here or  [browse all scripts in the client directory](./client).
+
+
+You can get help for all brainnet package functions by running `help(package="brainnet")` in R.
 
 Notes:
 
-* Not all examples are complete, and you will have to adapt them substantially to your research question and sample.
+* Not all example scripts in the client directory are complete, and you will have to adapt them substantially to your research question and sample.
 * Of course you do **not** have to use these scripts, or the exact methods, functions and parameters in it when working in our group: they are nothing but examples. Feel free to write your own analysis pipeline from scratch if you prefer that.
 * To make our research as reproducible as possible, we prefer a fully or mostly automated analysis pipeline. If some steps cannot be automated (e.g., QC involving manual inspection of the images), make sure to document these steps properly. Also make it clear in the scripts what input data are used, and how they were generated. Referring to external documents is fine, e.g., make it clear that a list of subjects that are removed from the full data set is excluded because they were found to be of bad quality during manual QC. You will also have to explain this in your report.
 
