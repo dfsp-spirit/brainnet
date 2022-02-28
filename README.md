@@ -61,3 +61,7 @@ Notes:
 * Not all examples are complete, and you will have to adapt them substantially to your research question and sample.
 * Of course you do **not** have to use these scripts, or the exact methods, functions and parameters in it when working in our group: they are nothing but examples. Feel free to write your own analysis pipeline from scratch if you prefer that.
 * To make our research as reproducible as possible, we prefer a fully or mostly automated analysis pipeline. If some steps cannot be automated (e.g., QC involving manual inspection of the images), make sure to document these steps properly. Also make it clear in the scripts what input data are used, and how they were generated. Referring to external documents is fine, e.g., make it clear that a list of subjects that are removed from the full data set is excluded because they were found to be of bad quality during manual QC. You will also have to explain this in your report.
+
+## References
+
+The functions in these package used data from the [ABIDE I](https://fcon_1000.projects.nitrc.org/indi/abide/) and [IXI](https://brain-development.org/ixi-dataset/) datasets. Make sure to cite the relevant publications for the data sets in your report.
