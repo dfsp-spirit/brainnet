@@ -64,4 +64,4 @@ Notes:
 
 ## References
 
-The functions in these package use data from the [ABIDE I](https://fcon_1000.projects.nitrc.org/indi/abide/) and [IXI](https://brain-development.org/ixi-dataset/) datasets. Make sure to cite the relevant publications for the data sets in your report.
+The functions in these package use data from the [ABIDE I](https://fcon_1000.projects.nitrc.org/indi/abide/) and [IXI](https://brain-development.org/ixi-dataset/) datasets. Make sure to cite the relevant publications for the data sets you use in your report.
