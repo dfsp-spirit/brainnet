@@ -68,6 +68,6 @@ The functions in these package use data from the [ABIDE I](https://fcon_1000.pro
 
 ## License
 
-* This package contains aggregated data derived from the ABIDE I data set. That data is published under a Creative Commons, Attribution-NonCommercial-Share Alike License as explained in the [ABIDE I Usage Agreeement](https://fcon_1000.projects.nitrc.org/indi/abide/abide_I.html).
+* This package contains aggregated data derived from the ABIDE I data set. That data is published under a Creative Commons, Attribution-NonCommercial-Share Alike License as explained in the [ABIDE I Usage Agreement](https://fcon_1000.projects.nitrc.org/indi/abide/abide_I.html).
 * This package contains aggregated data derived from the IXI data set. That data is published under the CC BY-SA 3.0 license, as explained on the [IXI website](https://brain-development.org/ixi-dataset/).
 * Regarding the source code of the `brainnet` package itself: this is WIP and we have not decided on a license yet: this software has [no license](https://choosealicense.com/no-permission/) at this time. Simply put: do not use it yet.
