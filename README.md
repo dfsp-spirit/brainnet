@@ -11,15 +11,12 @@ The [client scripts](./client) that come with the package demonstrate how to run
 
 The package also provides functions and aggregated data that make it very easy to work with the publicly available [ABIDE](https://fcon_1000.projects.nitrc.org/indi/abide/) and [IXI](https://brain-development.org/ixi-dataset/) data sets. These data sets are also used in the client scripts to demonstrate analysis pipelines.
 
-This package is intended mainly for internal use, and for student projects in our working group. It will not be published on [CRAN](https://cran.r-project.org/) as it is very specific to what we do.
+This package is intended mainly for internal use, and for student projects in our working group. This package will **not** be published on [CRAN](https://cran.r-project.org/) as it is very specific to what we do.
 
-## State
-
-**This is still work in progress, come back another day.**
 
 ## Installation
 
-**This is still work in progress, come back another day. The following instructions are for development and those who dare:**
+**This is still work in progress, come back another day. The following instructions are for developers and *those who dare*:**
 
 You will need R installed on your system. We recommend to install a recent R version for your operating system from the [official R website](https://www.r-project.org/). We also suggest to install the free personal edition of the [Rstudio IDE](https://www.rstudio.com/products/rstudio/) after you have installed R itself, but that is optional.
 
@@ -52,9 +49,9 @@ If you want to compile manually under MacOS instead of using the available binar
 
 ## Usage
 
-Once you have installed the `brainnet` package (see above), I would suggest to download a copy of one of the demo scripts to your computer. Create a new directory for all your analyses, place the file there, and open it in Rstudio to edit it. 
+Once you have installed the `brainnet` package (see above), I would suggest to download a copy of one of the demo scripts to your computer. Create a new directory for all your analyses, place the file in there, and open it in Rstudio to edit it. 
 
-E.g., download the file (client/demo_ABIDE_regionbased.R)[https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.R] here or  [browse all scripts in the client directory](./client).
+E.g., download the file (client/demo_ABIDE_regionbased.R)[https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.R] or [browse all scripts in the client directory](./client).
 
 
 You can get help for all brainnet package functions by running `help(package="brainnet")` in R.
