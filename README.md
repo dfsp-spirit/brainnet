@@ -65,3 +65,8 @@ You can get help for all brainnet package functions by running `help(package="br
 ## References
 
 The functions in these package use data from the [ABIDE I](https://fcon_1000.projects.nitrc.org/indi/abide/) and [IXI](https://brain-development.org/ixi-dataset/) datasets. Make sure to cite the relevant publications for the data sets you use in your report.
+
+## License
+
+* This package contains aggregated data derived from the ABIDE I data set. That data is published under a Creative Commons, Attribution-NonCommercial-Share Alike License as explained in the [ABIDE I Usage Agreeement](https://fcon_1000.projects.nitrc.org/indi/abide/abide_I.html).
+* This package contains aggregated data derived from the IXI data set. That data is published under the CC BY-SA 3.0 license, as explained on the [IXI website](https://brain-development.org/ixi-dataset/).
