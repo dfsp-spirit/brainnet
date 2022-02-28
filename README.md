@@ -13,9 +13,11 @@ This package is intended mainly for internal use, and for student projects in ou
 
 ## State
 
-This is still work in progress, come back another day.
+**This is still work in progress, come back another day.**
 
 ## Installation
+
+**This is still work in progress, come back another day.**
 
 You will need R installed on your system. We recommend to install a recent R version for your operating system from the [official R website](https://www.r-project.org/). We also suggest to install the free personal edition of the [Rstudio IDE](https://www.rstudio.com/products/rstudio/) after you have installed R itself, but that is optional.
 
