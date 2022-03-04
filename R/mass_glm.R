@@ -6,6 +6,8 @@
 #'
 #' @inheritParams slm_effect_sizes
 #'
+#' @return named list with entries according to the \code{output} parameter. By default \code{F}= the F value map, \code{p} = the uncorrected p value map, \code{p.adjust} = the FDR-corrected p value map.
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
@@ -65,6 +67,8 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 #'
 #' @importFrom stats p.adjust pt
 #'
+#' @return named list with entries according to the \code{output} parameter. By default \code{t}= the t value map, \code{p} = the uncorrected p value map, \code{p.adjust} = the FDR-corrected p value map.
+#'
 #' @export
 slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 
@@ -101,7 +105,7 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 #'
 #' @author C Ecker, documentation by T Schaefer
 #'
-#' @param x vector of input data values (not p values, see parameter p for those). The ones not surviving the correction for multiple comparisons of their respective p value will be set to NaN in the output.
+#' @param x numerical vector of input data values (not p values, see parameter p for those). The ones not surviving the correction for multiple comparisons of their respective p value will be set to NaN in the output.
 #'
 #' @param p the p-values for the x values
 #'
@@ -109,7 +113,7 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 #'
 #' @param p.adjust.method passed on to \code{stats::p.adjust}
 #'
-#' @return a version of x in which the values that did not survive the correction for multiple comparisons of their respective p value are set to NaN.
+#' @return numerical vector, a version of x in which the values that did not survive the correction for multiple comparisons of their respective p value are set to NaN.
 #'
 #' @importFrom stats p.adjust
 #'
@@ -140,7 +144,7 @@ slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="non
 #'
 #' @param output vector of pre-defined character strings, defined what values to return. Leave alone if in doubt.
 #'
-#' @return see output parameter
+#' @return named list with entries according to the \code{output} parameter. By default \code{F}= the F value map, \code{p} = the uncorrected p value map, \code{etasq} = the eta squared value map, , \code{parial.etasq} = the partial eta squared value map, \code{rsq} = the r squared value map. \code{power} = the power of the F test (1 minus Type II error probability) to detect an effect of the computed effect size (see 'cohens.f' entry) given the sample and a significance level of \code{0.05}.
 #'
 #' @importFrom magrittr %>%
 #' @importFrom pwr pwr.f2.test

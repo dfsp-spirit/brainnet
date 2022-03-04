@@ -15,6 +15,9 @@ slm_t(X, Y, model.term, output = c("t", "p", "p.adjust"))
 
 \item{output}{vector of pre-defined character strings, defined what values to return. Leave alone if in doubt.}
 }
+\value{
+named list with entries according to the \code{output} parameter. By default \code{t}= the t value map, \code{p} = the uncorrected p value map, \code{p.adjust} = the FDR-corrected p value map.
+}
 \description{
 Compute t map for mass-univariate GLM analysis.
 }

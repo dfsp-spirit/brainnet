@@ -21,7 +21,7 @@ slm_effect_sizes(
 \item{output}{vector of pre-defined character strings, defined what values to return. Leave alone if in doubt.}
 }
 \value{
-see output parameter
+named list with entries according to the \code{output} parameter. By default \code{F}= the F value map, \code{p} = the uncorrected p value map, \code{etasq} = the eta squared value map, , \code{parial.etasq} = the partial eta squared value map, \code{rsq} = the r squared value map. \code{power} = the power of the F test (1 minus Type II error probability) to detect an effect of the computed effect size (see 'cohens.f' entry) given the sample and a significance level of \code{0.05}.
 }
 \description{
 Compute effect sizes for mass-univariate GLM analysis.

@@ -15,6 +15,9 @@ slm_F(X, Y, predictors, output = c("F", "p", "p.adjust"))
 
 \item{output}{vector of pre-defined character strings, defined what values to return. Leave alone if in doubt.}
 }
+\value{
+named list with entries according to the \code{output} parameter. By default \code{F}= the F value map, \code{p} = the uncorrected p value map, \code{p.adjust} = the FDR-corrected p value map.
+}
 \description{
 Compute F stats map for mass-univariate GLM analysis.
 }
