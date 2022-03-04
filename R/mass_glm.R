@@ -61,7 +61,7 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 #'
 #' @inheritParams slm_effect_sizes
 #'
-#' @param model.term numerical matrix, the design or model matrix, typically created from the demographics data using \code{stats::model.matrix}.
+#' @param model.term numerical matrix, the design or model matrix, typically created from the demographics data using \code{\link[stats]{model.matrix}}.
 #'
 #' @author C Ecker, documentation by T Schaefer
 #'
@@ -136,7 +136,7 @@ slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="non
 #'
 #' @author C Ecker, documentation by T Schaefer
 #'
-#' @param X numerical matrix, the design or model matrix, typically created from the demographics data using \code{stats::model.matrix}.
+#' @param X numerical matrix, the design or model matrix, typically created from the demographics data using \code{\link[stats]{model.matrix}}.
 #'
 #' @param Y numerical matrix, the target value, typically neuroimaging data
 #'

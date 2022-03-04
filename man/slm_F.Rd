@@ -7,7 +7,7 @@
 slm_F(X, Y, predictors, output = c("F", "p", "p.adjust"))
 }
 \arguments{
-\item{X}{numerical matrix, the design or model matrix, typically created from the demographics data using \code{stats::model.matrix}.}
+\item{X}{numerical matrix, the design or model matrix, typically created from the demographics data using \code{\link[stats]{model.matrix}}.}
 
 \item{Y}{numerical matrix, the target value, typically neuroimaging data}
 
