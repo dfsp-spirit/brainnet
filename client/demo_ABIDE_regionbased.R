@@ -186,6 +186,7 @@ if(do_use_slmtools) {
 
     predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors in the model.matrix
     slm_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
+    slm_t_res <- brainnet::slm_t(mm, slm_braindata, model.term = "group");
 
     if(do_plot) {
 

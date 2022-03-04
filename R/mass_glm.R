@@ -61,7 +61,7 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 #'
 #' @inheritParams slm_effect_sizes
 #'
-#' @param model.term numerical matrix, the design or model matrix, typically created from the demographics data using \code{\link[stats]{model.matrix}}.
+#' @param model.term character string, the name of the factor in the model for which to compute the stats.
 #'
 #' @author C Ecker, documentation by T Schaefer
 #'
@@ -135,7 +135,7 @@ slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="non
 #' @title Compute effect sizes for mass-univariate GLM analysis.
 #'
 #' @author C Ecker, documentation by T Schaefer
-#'
+#'″
 #' @param X numerical matrix, the design or model matrix, typically created from the demographics data using \code{\link[stats]{model.matrix}}.
 #'
 #' @param Y numerical matrix, the target value, typically neuroimaging data
