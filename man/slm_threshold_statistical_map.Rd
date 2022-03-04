@@ -7,13 +7,16 @@
 slm_threshold_statistical_map(x, p, alpha = 0.05, p.adjust.method = "none")
 }
 \arguments{
-\item{x}{vector of values}
+\item{x}{vector of input data values (not p values, see parameter p for those). The ones not surviving the correction for multiple comparisons of their respective p value will be set to NaN in the output.}
 
 \item{p}{the p-values for the x values}
 
 \item{alpha}{the alpha level}
 
 \item{p.adjust.method}{passed on to \code{stats::p.adjust}}
+}
+\value{
+a version of x in which the values that did not survive the correction for multiple comparisons of their respective p value are set to NaN.
 }
 \description{
 Threshold a statistical map by setting all values with p > alpha to NaN.

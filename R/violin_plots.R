@@ -18,6 +18,8 @@ effect_size_violin_plots <- function(effects_mat, plot_ylabel="Effect Size (Cohe
     mdata <- reshape2::melt(tdata, id=rownames(effects_mat)); # Reshape data to long format for usewith  ggplot.
     # Afterwards there are 3 columns in 'mdata': 'Var1' contains vertex name (like 'V1...Vn'), 'Var2' contains predictor name (Sex, age, ...) and 'value' contains the descriptor value for the respective vertex.
 
+    Var2 = value = NULL; # Once more for R CMD CHECK. See https://stackoverflow.com/questions/9439256/how-can-i-handle-r-cmd-check-no-visible-binding-for-global-variable-notes-when
+
     #NOTE!: scale_x_discrete overwrites the axis labels with what you define in labs, make sure to have them in the order of your data
     #NOTE!: If you have more than 8 different things to plot, you have to use another color brewer palette (e.g. "Paired)
     labs <- rownames(effects_mat) #labels for axis

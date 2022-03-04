@@ -11,6 +11,8 @@ slm_t(X, Y, model.term, output = c("t", "p", "p.adjust"))
 
 \item{Y}{numerical matrix, the target value, typically neuroimaging data}
 
+\item{model.term}{numerical matrix, the design or model matrix, typically created from the demographics data using \code{stats::model.matrix}.}
+
 \item{output}{vector of pre-defined character strings, defined what values to return. Leave alone if in doubt.}
 }
 \description{

@@ -59,9 +59,11 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 #'
 #' @inheritParams slm_effect_sizes
 #'
+#' @param model.term numerical matrix, the design or model matrix, typically created from the demographics data using \code{stats::model.matrix}.
+#'
 #' @author C Ecker, documentation by T Schaefer
 #'
-#' @importFrom stats p.adjust
+#' @importFrom stats p.adjust pt
 #'
 #' @export
 slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
@@ -99,13 +101,15 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 #'
 #' @author C Ecker, documentation by T Schaefer
 #'
-#' @param x vector of values
+#' @param x vector of input data values (not p values, see parameter p for those). The ones not surviving the correction for multiple comparisons of their respective p value will be set to NaN in the output.
 #'
 #' @param p the p-values for the x values
 #'
 #' @param alpha the alpha level
 #'
 #' @param p.adjust.method passed on to \code{stats::p.adjust}
+#'
+#' @return a version of x in which the values that did not survive the correction for multiple comparisons of their respective p value are set to NaN.
 #'
 #' @importFrom stats p.adjust
 #'
