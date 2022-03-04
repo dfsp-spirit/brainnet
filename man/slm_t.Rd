@@ -17,5 +17,5 @@ slm_t(X, Y, model.term, output = c("t", "p", "p.adjust"))
 Compute t map for mass-univariate GLM analysis.
 }
 \author{
-C Ecker
+C Ecker, documentation by T Schaefer
 }

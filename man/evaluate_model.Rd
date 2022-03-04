@@ -2,7 +2,7 @@
 % Please edit documentation in R/eval_model.R
 \name{evaluate_model}
 \alias{evaluate_model}
-\title{Compute metrics for classification model evaluation}
+\title{Compute and print metrics for classification model evaluation}
 \usage{
 evaluate_model(actual, predicted)
 }
@@ -15,5 +15,8 @@ evaluate_model(actual, predicted)
 Nothing, called for printing side effect.
 }
 \description{
-Compute metrics for classification model evaluation
+Compute and print metrics for classification model evaluation
+}
+\author{
+T Schaefer
 }

@@ -1,6 +1,8 @@
 
 #' @title Get operating system name.
 #'
+#' @author T Schaefer
+#'
 #' @return One of 'osx' or 'linux'. Others are not supported.
 #'
 #' @keywords internal

@@ -1,6 +1,8 @@
 
 
-#' @title Compute metrics for classification model evaluation
+#' @title Compute and print metrics for classification model evaluation
+#'
+#' @author T Schaefer
 #'
 #' @param actual vector of actual labels
 #'

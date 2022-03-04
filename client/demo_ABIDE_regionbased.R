@@ -11,7 +11,6 @@ library("readxl");    # to read Excel demographics files
 library("MatchIt");   # matching of patient/control groups
 library("Rglpk");     # a solver for cardinality matching with MatchIt using the "glpk" solver (the default in this script). Requires sys deps, e.g., `sudo apt install libglpk-dev` under Linux. Use Homebrew to get it under MacOS.
 library("ggplot2");   # general purpose plots
-#library("slmtools");  # internal R package of Ecker neuroimaging group for mass-univariate GLM analysis. not needed for this version of the script.
 
 ################################################################################
 ########################## Load data and demographics ##########################
@@ -89,12 +88,12 @@ atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'apar
 
 ## There are 2 options:
 
-## Option 1) Aggregate the native space data by atlas region from the raw per-vertex data files and parcellations. This takes quite a bit of time for a large data set (and slow hard disks/networks).
+## Option 1) Aggregate the native space data by atlas region from the raw per-vertex data files and parcellations. This takes quite a bit of time due to data loading for a large data set (and slow hard disks/networks).
 #braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas);
 
-## Option 2) Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor (one file per hemi). Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all, so the command only does trivial stuff and is very fast + needs to be run only once).
+## Option 2) Alternatively, one could load a CSV file produced by the FreeSurfer tool 'aparcstats2table' for your descriptor (one file per hemi). Then you would only need to do the computation once (it has actually been done by FreeSurfer during recon-all), so the command only does trivial stuff and is very fast + needs to be run only once.
 model_data_segstats_files = aparcstats_files_ABIDE(measure = measure); # for ABIDE, we ship the files with this package.
-braindata = region.data.from.segstat.tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
+braindata = region_data_from_segstat_tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
 
 
 ## Optional: visualize the data for a subject.
@@ -103,7 +102,7 @@ braindata = region.data.from.segstat.tables(model_data_segstats_files$lh, model_
 
 ## Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do not need to change it.
 ## These columns contain only NAN values.
-## You may not have these columns if you used 'region.data.from.segstat.tables()' to load the data, but even then these lines won't hurt.
+## You may not have these columns if you used 'region.data.from.segstat.tables()' to load the data, but even then these lines won't hurt (setting non-existing columns to NULL is a no-op).
 braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
 braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
 braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
@@ -125,14 +124,14 @@ for(region_name in considered_atlas_regions) {
     formula_region = sprintf("%s ~ group + age + iq + site + totalMeanCorticalThickness", region_name); # we do not use gender because the sample is all male.
     fit = glm(formula = formula_region, data = glm_data, family=gaussian());
     region_fits[[region_name]] = fit;
-    pvalues_group[[region_name]] = unname(coef(summary.glm(region_fits[[region_name]]))[2,4]);   ## You can change the numbers here to access data for other predictors, the default is main effect of group (due to the order in the formula above).
+    pvalues_group[[region_name]] = unname(coef(summary.glm(fit))[2,4]);   ## You can change the numbers here to access data for other predictors, the default is main effect of group (due to the order in the formula above).
 
     raw_sd_case = sd(glm_data[[region_name]][glm_data$group == "asd"]);
     raw_sd_control = sd(glm_data[[region_name]][glm_data$group == "control"]);
-    raw_sd_pooled = sqrt((raw_sd_case * raw_sd_case + raw_sd_control + raw_sd_control) / 2.0);
+    raw_sd_pooled = sqrt((raw_sd_case * raw_sd_case + raw_sd_control * raw_sd_control) / 2.0);
     effect_group_case_mean = effects::effect("group", fit)$fit[1];
-    effect_grou_control_mean = effects::effect("group", fit)$fit[2];
-    cohen_d = (effect_group_case_mean - effect_grou_control_mean) / raw_sd_pooled;
+    effect_group_control_mean = effects::effect("group", fit)$fit[2];
+    cohen_d = (effect_group_case_mean - effect_group_control_mean) / raw_sd_pooled;
     effect_sizes_group[[region_name]] = abs(cohen_d); # we are not interested in direction for effect size.
 
     region_idx = region_idx + 1L;
@@ -177,7 +176,7 @@ if(do_plot) {
 #####                      illustrate how they can be used for region-wise analysis (even though they are not required in that case).
 ##### The slmtools function require the data in a different format than the `glm` function used above, therefore we need
 ####  to do some data restructuring before we can start.
-do_use_slmtools = FALSE;
+do_use_slmtools = TRUE;
 if(do_use_slmtools) {
     slm_braindata = subset(braindata, braindata$subject %in% demographics$subject_id);
     slm_braindata$subject = NULL; # remove non-numerical column.
@@ -185,7 +184,7 @@ if(do_use_slmtools) {
 
     mm <- model.matrix(~ factor(demographics$group) + demographics$age + demographics$iq + factor(demographics$site) + demographics$totalMeanCorticalThickness);
 
-    predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors
+    predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors in the model.matrix
     slm_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
 
     if(do_plot) {
@@ -197,11 +196,18 @@ if(do_use_slmtools) {
             predictor = predictors[pred_idx];
 
             measure_values = slm_res[[measure_to_plot]][predictor, ];
-            lh_region_value_list = measure_values[startsWith(names(measure_values), "lh")];
-            rh_region_value_list = measure_values[startsWith(names(measure_values), "rh")];
-            # our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes, and we have 34 instead of 36 regions (due to ignored NAN regions), so the plot function cannot decide which values belong to which region, and we need to do some manual adaptations. We fix the names.
-            names(lh_region_value_list) = substring(names(lh_region_value_list), 4); # remove prefix 'lh_'
-            names(rh_region_value_list) = substring(names(rh_region_value_list), 4); # remove prefix 'rh_'
+
+            ## Our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes, and we have 34 instead of 36 regions (due to ignored NAN regions), so the plot function cannot decide which values belong to which region, and we need to do some manual adaptations. We fix the names.
+            ## UPDATE: We now solve this with fsbrain::hemilist.from.prefixed.list, see below.
+            #lh_region_value_list = measure_values[startsWith(names(measure_values), "lh")];
+            #rh_region_value_list = measure_values[startsWith(names(measure_values), "rh")];
+            #names(lh_region_value_list) = substring(names(lh_region_value_list), 4); # remove prefix 'lh_'
+            #names(rh_region_value_list) = substring(names(rh_region_value_list), 4); # remove prefix 'rh_'
+
+            effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(measure_values);
+            lh_region_value_list = effect_sizes_by_hemi$lh;
+            rh_region_value_list = effect_sizes_by_hemi$rh;
+
             cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = lh_region_value_list, rh_region_value_list = rh_region_value_list, atlas = atlas, views = NULL);
 
             output_img = sprintf("%s_%s.png", measure_to_plot, predictor);

@@ -15,4 +15,7 @@ converted data.frame
 \description{
 Convert the parcstats data.frame to match the format used by fsbrain::group.agg.atlas.native.
 }
+\author{
+T Schaefer
+}
 \keyword{internal}

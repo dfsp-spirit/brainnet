@@ -7,6 +7,8 @@
 #'
 #' @family IXI functions
 #'
+#' @author T Schaefer
+#'
 #' @export
 postproc_IXI_demographics <- function(demographics) {
     demographics$DOB = as.Date(demographics$DOB, format="%Y-%m-%d");

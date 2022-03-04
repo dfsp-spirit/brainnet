@@ -19,5 +19,5 @@ slm_threshold_statistical_map(x, p, alpha = 0.05, p.adjust.method = "none")
 Threshold a statistical map by setting all values with p > alpha to NaN.
 }
 \author{
-C Ecker
+C Ecker, documentation by T Schaefer
 }

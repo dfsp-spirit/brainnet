@@ -20,4 +20,7 @@ Other IXI functions:
 \code{\link{get_IXI_brainstats_for_subjects}()},
 \code{\link{load_IXI_metadata}()}
 }
+\author{
+T Schaefer
+}
 \concept{IXI functions}

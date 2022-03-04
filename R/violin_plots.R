@@ -10,7 +10,7 @@
 #'
 #' @return a ggplot instance.
 #'
-#' @author Johanna Leyhausen
+#' @author J Leyhausen, documentation by T Schaefer
 #'
 #' @export
 effect_size_violin_plots <- function(effects_mat, plot_ylabel="Effect Size (Cohen's f)") {

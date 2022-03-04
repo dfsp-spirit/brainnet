@@ -12,4 +12,7 @@ One of 'osx' or 'linux'. Others are not supported.
 \description{
 Get operating system name.
 }
+\author{
+T Schaefer
+}
 \keyword{internal}

@@ -2,7 +2,7 @@
 
 #' @title Compute F stats map for mass-univariate GLM analysis.
 #'
-#' @author C Ecker
+#' @author C Ecker, documentation by T Schaefer
 #'
 #' @inheritParams slm_effect_sizes
 #'
@@ -48,8 +48,6 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
     p <- stats::pf(F, df.reg, df.res, lower.tail = FALSE)
     p.adjust <- stats::p.adjust(p, method = "fdr") # FDR adjusted p value
 
-    # Mon Jun 15 14:49:55 2020 ------------------------------
-
     return.obj <- lapply(output, function(x) {get(x, inherits = TRUE)})
     names(return.obj) <- output
 
@@ -61,7 +59,7 @@ slm_F <- function(X, Y, predictors, output = c("F", "p", "p.adjust")) {
 #'
 #' @inheritParams slm_effect_sizes
 #'
-#' @author C Ecker
+#' @author C Ecker, documentation by T Schaefer
 #'
 #' @importFrom stats p.adjust
 #'
@@ -99,7 +97,7 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 
 #' @title Threshold a statistical map by setting all values with p > alpha to NaN.
 #'
-#' @author C Ecker
+#' @author C Ecker, documentation by T Schaefer
 #'
 #' @param x vector of values
 #'
@@ -123,7 +121,7 @@ slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="non
 
 #' @title Compute effect sizes for mass-univariate GLM analysis.
 #'
-#' @author C Ecker
+#' @author C Ecker, documentation by T Schaefer
 #'
 #' @param X numerical matrix, the design or model matrix, typically created from the demographics data using \code{stats::model.matrix}.
 #'

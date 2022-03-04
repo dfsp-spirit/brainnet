@@ -4,15 +4,25 @@
 #'
 #' @param filepath character string, the path to the aparcstats or asegstats file.
 #'
+#' @author T Schaefer
+#'
 #' @return data.frame with seg/parc stats
 #'
+#' @examples
+#' \dontrun{
+#' stats_file ="~/study1/lh.aparc_allsubjects.table";
+#' df = read_segstats_table(stats_file);
+#' }
+#'
 #' @export
-read.segstats.table <- function(filepath) {
+read_segstats_table <- function(filepath) {
     return(read.table(filepath, sep='\t', header=TRUE, stringsAsFactors=FALSE));
 }
 
 
 #' @title Retrieve region-based morphometry data from a parcellation stats files created by 'aparcstats2table'.
+#'
+#' @author T Schaefer
 #'
 #' @param lh_segstatsfile character string, the path to the aparcstats file for the left hemisphere.
 #'
@@ -22,16 +32,25 @@ read.segstats.table <- function(filepath) {
 #'
 #' @note The parcellation stats files must be generated manually for your sample using 'aparcstats2table'.
 #'
+#' @examples
+#' \dontrun{
+#' lh_sfile ="~/study1/lh.aparc_allsubjects.table";
+#' rh_sfile ="~/study1/rh.aparc_allsubjects.table";
+#' df = region_data_from_segstat_tables(lh_sfile, rr_sfile);
+#' }
+#'
 #' @export
-region.data.from.segstat.tables <- function(lh_segstatsfile, rh_segstatsfile) {
-    lh_df = convert.segstats.table.format(read.segstats.table(lh_segstatsfile));
-    rh_df = convert.segstats.table.format(read.segstats.table(rh_segstatsfile));
+region_data_from_segstat_tables <- function(lh_segstatsfile, rh_segstatsfile) {
+    lh_df = convert.segstats.table.format(read_segstats_table(lh_segstatsfile));
+    rh_df = convert.segstats.table.format(read_segstats_table(rh_segstatsfile));
     df_both_hemis = base::merge(lh_df, rh_df, by="subject");
     return(df_both_hemis);
 }
 
 
 #' @title Convert the parcstats data.frame to match the format used by fsbrain::group.agg.atlas.native.
+#'
+#' @author T Schaefer
 #'
 #' @param dt data.frame, as returned by \code{read.segstats.table}
 #'

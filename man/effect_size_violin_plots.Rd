@@ -18,5 +18,5 @@ a ggplot instance.
 Create effect size violin plots for all predictors at once.
 }
 \author{
-Johanna Leyhausen
+J Leyhausen, documentation by T Schaefer
 }

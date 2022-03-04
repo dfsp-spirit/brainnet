@@ -1,6 +1,8 @@
 
 #' @title Search for the ABIDE data directory on my machine.
 #'
+#' @author T Schaefer
+#'
 #' @note Ignore this internal function. You should simply hard-code the path to the data on your machine in your script. This function only exists to make the demo script short (and still allow it to run on all my machines during development).
 #'
 #' @return character string, the path to the ABIDE data, preprocessed with FreeSurfer (the recon-all output dir or SUBJECTS_DIR).

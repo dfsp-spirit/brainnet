@@ -19,5 +19,5 @@ slm_F(X, Y, predictors, output = c("F", "p", "p.adjust"))
 Compute F stats map for mass-univariate GLM analysis.
 }
 \author{
-C Ecker
+C Ecker, documentation by T Schaefer
 }
