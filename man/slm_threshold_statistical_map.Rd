@@ -21,6 +21,12 @@ a version of x in which the values that did not survive the correction for multi
 \description{
 Threshold a statistical map by setting all values with p > alpha to NaN.
 }
+\examples{
+    braindata = rnorm(40, 5.0, 0.2);
+    braindata_p = rnorm(40, 0.05, 0.1);
+    data_thresh = slm_threshold_statistical_map(braindata, braindata_p);
+
+}
 \author{
 C Ecker, documentation by T Schaefer
 }

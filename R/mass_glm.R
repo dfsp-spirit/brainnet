@@ -113,6 +113,11 @@ slm_t <- function(X, Y, model.term, output=c("t", "p", "p.adjust")) {
 #'
 #' @importFrom stats p.adjust
 #'
+#' @examples
+#'     braindata = rnorm(40, 5.0, 0.2);
+#'     braindata_p = rnorm(40, 0.05, 0.1);
+#'     data_thresh = slm_threshold_statistical_map(braindata, braindata_p);
+#'
 #' @export
 slm_threshold_statistical_map <- function(x, p, alpha=0.05, p.adjust.method="none") {
 
