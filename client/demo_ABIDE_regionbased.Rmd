@@ -11,7 +11,7 @@ rgl::setupKnitr()
 ```
 
 
-# Load required packages
+### Load required packages
 
 ```{r, message=FALSE}
 library("brainnet");  # this package
@@ -23,7 +23,7 @@ library("ggplot2");   # general purpose plots
 ```
 
 
-## Settings
+### Settings
 
 ```{r}
 do_plot = F;
@@ -40,7 +40,11 @@ if(do_plot) {
 
 # Load data and demographics
 
-## Load the demographics and global brain measurements
+## Load the demographics and total brain measurements
+
+The demographics data includes the group membership, and covariates like age, gender, and IQ. The total brain measurements are also
+loaded by the `load_ABIDE_metadata_males()` function and merged with the other metadata. They are typically used to correct for
+total brain volume or similar measures.
 
 ```{r}
 subjects_dir = brainnet:::get_ABIDE_path_on_tims_machines(); # replace with the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
@@ -161,8 +165,10 @@ braindata = region_data_from_segstat_tables(model_data_segstats_files$lh, model_
 
 ### Optional: visualize the data for a subject.
 
-```{r, eval = FALSE}
-fsbrain::vis.subject.morph.native(subjects_dir, subjects_list[1], measure = measure);
+```{r rgl=TRUE, dev='png'}
+if(do_plot) {
+    fsbrain::vis.subject.morph.native(subjects_dir, subjects_list[1], measure = measure);
+}
 ```
 
 ### Data cleanup
@@ -177,6 +183,20 @@ braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will t
 braindata$rh_unknown = NULL; # Same for other hemisphere.
 ```
 
+
+### Data format conversion
+
+Some final data preparations: we need to exclude the non-numerical 'subject' column from the data, filter the data to keep only the rows for subjects which are part of our sample, and turn them into a `data.matrix` for the statistical analysis.
+
+```{r}
+considered_atlas_regions = names(braindata);
+considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"]; # ignore subject column (it's not a region).
+
+slm_braindata = subset(braindata, braindata$subject %in% demographics$subject_id);
+slm_braindata$subject = NULL; # remove non-numerical column.
+slm_braindata = data.matrix(slm_braindata);
+```
+
 ### Data Normalization
 
 Do you want to normalize the predictors (age, iq, meanCT/brainvol)?
@@ -185,41 +205,46 @@ If you want to do it, you can use `base::scale()` here on your data.
 
 # Statistical analysis
 
+Specify and run the model.
+
 ## Run the GLMs (on per atlas region/hemi)
 
 
 ```{r}
-considered_atlas_regions = names(braindata);
-considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"]; # ignore subject column (it's not a region).
-
-
-slm_braindata = subset(braindata, braindata$subject %in% demographics$subject_id);
-slm_braindata$subject = NULL; # remove non-numerical column.
-slm_braindata = data.matrix(slm_braindata);
-
 mm <- model.matrix(~ factor(demographics$group) + demographics$age + demographics$iq + factor(demographics$site) + demographics$totalMeanCorticalThickness);
 
 predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors in the model.matrix
 slm_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
 slm_t_res <- brainnet::slm_t(mm, slm_braindata, model.term = "group");
+```
 
+
+You now have the effect sizes for all predictors in variable `slm_res$cohens.f`.
+
+
+## Visualization of results
+
+Optional: here we plot the effect size by atlas region.
+
+```{r rgl=TRUE, fig.show = 'hide', warning = 'hide'}
 if(do_plot) {
 
-    measure_to_plot = "cohens.f"; # can use "cohens.f", "etasq", or "power".
+    measure_to_plot = "cohens.f";           # Choose one. Can use "cohens.f", "etasq", or "power".
+    predictors_to_plot = c("group", "age"); # Choose one or more from variable 'predictors'.
+    fsbrain_plots = list();
 
     #visualization of per vertex effect sizes of group on fsaverage.
     for(pred_idx in seq.int(length(predictors))) {
         predictor = predictors[pred_idx];
+        
+        if(!(predictor %in% predictors_to_plot)) {
+            next; # skip others.
+        }
 
         measure_values = slm_res[[measure_to_plot]][predictor, ];
 
-        ## Our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes, and we have 34 instead of 36 regions (due to ignored NAN regions), so the plot function cannot decide which values belong to which region, and we need to do some manual adaptations. We fix the names.
-        ## UPDATE: We now solve this with fsbrain::hemilist.from.prefixed.list, see below.
-        #lh_region_value_list = measure_values[startsWith(names(measure_values), "lh")];
-        #rh_region_value_list = measure_values[startsWith(names(measure_values), "rh")];
-        #names(lh_region_value_list) = substring(names(lh_region_value_list), 4); # remove prefix 'lh_'
-        #names(rh_region_value_list) = substring(names(rh_region_value_list), 4); # remove prefix 'rh_'
-
+        # Our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes,
+        # so we split into one listper hemisphere based on the prefixes.
         effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(measure_values);
         lh_region_value_list = effect_sizes_by_hemi$lh;
         rh_region_value_list = effect_sizes_by_hemi$rh;
@@ -227,14 +252,22 @@ if(do_plot) {
         cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = lh_region_value_list, rh_region_value_list = rh_region_value_list, atlas = atlas, views = NULL);
 
         output_img = sprintf("%s_%s.png", measure_to_plot, predictor);
-        cat(sprintf("Writing %s figure for predictor '%s' to file: %s\n", measure_to_plot, predictor, output_img));
-        fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure_to_plot, predictor));
+        cat(sprintf("Writing %s figure for predictor '%s' to file '%s' in directory '%s'.\n", measure_to_plot, predictor, output_img, getwd()));
+        img = fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure_to_plot, predictor));
+        fsbrain_plots[[predictor]] = img;
     }
 
     # A single effect size (or whatever) violin plot for all predictors.
-    brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]], plot_ylabel=measure_to_plot);
+    ggplot_instance = brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]], plot_ylabel=measure_to_plot);
 }
 ```
 
+Show the plots in the notebook (if any):
 
+```{r}
+if(do_plot) {
+    fsbrain_plots["group"];
+    ggplot_instance;
+}
+```
 
