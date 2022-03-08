@@ -26,7 +26,7 @@ library("ggplot2");   # general purpose plots
 ### Settings
 
 ```{r}
-do_plot = F;
+do_plot = TRUE;    # This is a lot faster without
 ```
 
 
@@ -167,7 +167,7 @@ braindata = region_data_from_segstat_tables(model_data_segstats_files$lh, model_
 
 ```{r rgl=TRUE, dev='png'}
 if(do_plot) {
-    fsbrain::vis.subject.morph.native(subjects_dir, subjects_list[1], measure = measure);
+    fsbrain::vis.subject.morph.native(subjects_dir, subjects_list[1], measure = measure, draw_colorbar = TRUE);
 }
 ```
 
@@ -203,6 +203,10 @@ Do you want to normalize the predictors (age, iq, meanCT/brainvol)?
 What are the advantages and disadvantages?
 If you want to do it, you can use `base::scale()` here on your data.
 
+```{r}
+# TODO: normalize here.
+```
+
 # Statistical analysis
 
 Specify and run the model.
@@ -215,7 +219,7 @@ mm <- model.matrix(~ factor(demographics$group) + demographics$age + demographic
 
 predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors in the model.matrix
 slm_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
-slm_t_res <- brainnet::slm_t(mm, slm_braindata, model.term = "group");
+#slm_t_res <- brainnet::slm_t(mm, slm_braindata, model.term = "group");
 ```
 
 
