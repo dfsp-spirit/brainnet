@@ -115,6 +115,12 @@ considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != 
 do_use_slmtools = TRUE;
 
 
+##### TODO: Normalization #####
+# Do you want to normalize the predictors (age, iq, meanCT/brainvol)?
+# What are the advantages and disadvantages?
+# If you want to do it, you can use base::scale() here on your data.
+
+
 if(! do_use_slmtools)  {
     ## Merge the brain data with the demographics. This is an inner join, so it discards braindata for subjects which are not in the filtered demographics.
     glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject");
