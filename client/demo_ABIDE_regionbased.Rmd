@@ -1,0 +1,240 @@
+---
+title: "fsbrain visualization examples"
+author: "Tim Schäfer"
+date: "Septmember 16, 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rgl::setupKnitr()
+```
+
+
+# Load required packages
+
+```{r, message=FALSE}
+library("brainnet");  # this package
+library("fsbrain");   # loading neuroimaging data and visualizing results.
+library("readxl");    # to read Excel demographics files
+library("MatchIt");   # matching of patient/control groups
+library("Rglpk");     # a solver for cardinality matching with MatchIt using the "glpk" solver (the default in this script). Requires sys deps, e.g., `sudo apt install libglpk-dev` under Linux. Use Homebrew to get it under MacOS.
+library("ggplot2");   # general purpose plots
+```
+
+
+## Settings
+
+```{r}
+do_plot = F;
+```
+
+
+```{r, echo=FALSE, results=FALSE, message=FALSE}
+# Make sure we have the brain templates for plotting.
+if(do_plot) {
+    fsbrain::download_optional_data();
+    fsbrain::download_fsaverage(accept_freesurfer_license = TRUE);
+}
+```
+
+# Load data and demographics
+
+## Load the demographics and global brain measurements
+
+```{r}
+subjects_dir = brainnet:::get_ABIDE_path_on_tims_machines(); # replace with the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
+if(! dir.exists(subjects_dir)) {
+    stop(sprintf("The subjects_dir '%s' does not exist.\n", subjects_dir));
+}
+
+md = load_ABIDE_metadata_males(impute_data = TRUE);
+demographics = md$merged; # Extract the field that contains the merged brainstats and demographics.
+```
+
+
+## Define your sample
+
+You task: Define your own sample here.
+
+The sample should be a subset of the available data (rows) in the data.frame 'demographics' that must:
+  1) follow your inclusion criteria (=> e.g.,define a suitable age range for your research question and filter the subjects accordingly)
+  2) not include bad quality scans (=> perform some sort of quality inspection of the data and filter subjects that do not pass the quality criteria)
+  3) achieve at least approximate balance between covariates for the groups (=> check for significant iq/age/... differences between controls and cases and reduce them using matching).
+
+### Data Quality checks
+
+The next lines show a basic QC example:
+
+```{r}
+qc_segstats_files = aparcstats_files_ABIDE(measure = "thickness"); # There is no need to use the same measure for QC and your GLM analysis below, leave this alone if in doubt.
+qc = fsbrain::qc.from.segstats.tables(qc_segstats_files$lh, qc_segstats_files$rh); # You can provide your own files as well (and will need to do so if you do not use the ABIDE/IXI datasets for which we provide the files).
+# qc = fsbrain::qc.for.group(subjects_dir, subjects_list, measure = "thickness", atlas = "aparc"); # This could be used if you cannot get the files (which is very unlikely if you have the data required to run this command). It is *a lot* slower than reading the pre-computed file. You should NOT use this unless there really is no other way.
+bad_quality_subjects = unique(c(qc$lh$failed_subjects, qc$rh$failed_subjects)); # extract failed subjects from quality check results.
+my_demographics_qc = subset(demographics, !(demographics$subject_id %in% bad_quality_subjects)); # Remove all bad quality scans.
+cat(sprintf("Excluded %d of %d subjects due to bad scan quality. %d left.\n", length(bad_quality_subjects), nrow(demographics), nrow(my_demographics_qc)));
+```
+
+
+### Apply your inclusion criteria
+
+Here is an example for inclusion/exclusion criteria: we only keep subjects with IQ >= 70 and age between 12 and 18 years.
+
+```{r}
+my_demographics_qc_incl = my_demographics_qc;
+my_demographics_qc_incl = subset(my_demographics_qc_incl, (my_demographics_qc_incl$age >= 12 & my_demographics_qc_incl$age <= 18)); # Filter for age range.
+my_demographics_qc_incl = subset(my_demographics_qc_incl, (my_demographics_qc_incl$iq >= 70.0)); # Filter by IQ.
+num_excluded_by_inclusion_criteria = nrow(my_demographics_qc) - nrow(my_demographics_qc_incl);
+cat(sprintf("Excluded %d of %d subjects due to inclusion criteria. %d left.\n", num_excluded_by_inclusion_criteria, nrow(demographics), nrow(my_demographics_qc_incl)));
+```
+
+
+### Matching
+
+Now for the matching. We use cardinality matching here, but that may not be what you want. Read the documentation for MatchIt to see (many!) other options.
+
+```{r}
+## The variables you need to match on also depend on your research question (mainly on the descriptor used).
+solver = "glpk"; # use "gurobi" if you have or can install it, or "glpk" if you do not have gurobi. See the MatchIt documentation for reasons.
+mymatch = MatchIt::matchit(group ~ age + iq + totalBrainVolume, data = my_demographics_qc_incl, method = "cardinality", solver = solver, time = 60*5);
+## Show an overview of the improvements/changes before and after matching. You should look at this for various matching algorithms/settings.
+# summary(mymatch);
+## Get the matched data.
+my_demographics_qc_incl_matched = MatchIt::match.data(mymatch);
+my_demographics_qc_incl_matched$weights = NULL; # delete the 'weights' column added by matching, it is useless (all ones) in the case of cardinality matching.
+num_excluded_by_matching = nrow(my_demographics_qc_incl) - nrow(my_demographics_qc_incl_matched);
+cat(sprintf("Excluded %d of %d subjects due to matching. %d left.\n", num_excluded_by_matching, nrow(demographics), nrow(my_demographics_qc_incl_matched)));
+```
+
+All done, let us actually use our modified demographics:
+
+```{r}
+demographics = my_demographics_qc_incl_matched;
+```
+
+
+Your sample should be complete by this line, with results in variable 'demographics'.
+
+### Sample overview
+
+Print some information on the sample to make sure it matches your expectations:
+
+```{r}
+subjects_list = as.character(demographics$subject_id);
+
+subjects_control = subjects_list[demographics$group == "control"];
+subjects_asd = subjects_list[demographics$group == "asd"];
+cat(sprintf("Working with %d subjects in total: %d ASD and %s controls.\n", length(subjects_list), length(subjects_asd), length(subjects_control)));
+if(length(subjects_asd) + length(subjects_control) != length(subjects_list)) {
+    stop("Invalid group assignment to case/control (or more than 2 groups).");
+}
+```
+
+
+## Load the neuroimaging data
+
+First we specify which data we want to load: the atlas and measure are the important ones.
+
+```{r}
+measure="thickness";  ## The native space descriptor to load from the subjects 'surf' directory, its values will be aggregated with the atlas regions (see 'atlas' below).
+hemi="split";   ## For which hemisphere to compute the results. One of 'lh' for left only, 'rh' for right only, or 'split' to compute (separately) for both hemispheres. Leave this alone.
+atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'aparc.a2009s' for Destrieux atlas, 'aparc.DKTatlas40' for DKT atlas, or your custom atlas. See https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation for details.
+```
+
+Now we actually load the data. There are 2 options:
+
+1) Aggregate the native space data by atlas region from the raw per-vertex data files and parcellations. This takes quite a bit of time due to data loading for a large data set (and slow hard disks/networks). We do no do this here. We still illustrate how it could be done:
+
+```{r, eval = FALSE}
+braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas);
+```
+
+2) Alternatively, one could load a CSV file produced by the FreeSurfer tool `aparcstats2table` for your descriptor (one file per hemi). Then you would only need to do the computation once (when running that command), so here in R all you need to do is to load a CSV file, which is very fast.
+
+```{r}
+model_data_segstats_files = aparcstats_files_ABIDE(measure = measure); # for ABIDE, we ship the files with this package.
+braindata = region_data_from_segstat_tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
+```
+
+
+## Data postprocessing
+
+### Optional: visualize the data for a subject.
+
+```{r, eval = FALSE}
+fsbrain::vis.subject.morph.native(subjects_dir, subjects_list[1], measure = measure);
+```
+
+### Data cleanup
+
+Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do not need to change it. These columns contain only NAN values.
+Note: You may not have these columns if you used 'region.data.from.segstat.tables()' to load the data, but even then these lines won't hurt (setting non-existing columns to NULL is a no-op).
+
+```{r}
+braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
+braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
+braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
+braindata$rh_unknown = NULL; # Same for other hemisphere.
+```
+
+### Data Normalization
+
+Do you want to normalize the predictors (age, iq, meanCT/brainvol)?
+What are the advantages and disadvantages?
+If you want to do it, you can use `base::scale()` here on your data.
+
+# Statistical analysis
+
+## Run the GLMs (on per atlas region/hemi)
+
+
+```{r}
+considered_atlas_regions = names(braindata);
+considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"]; # ignore subject column (it's not a region).
+
+
+slm_braindata = subset(braindata, braindata$subject %in% demographics$subject_id);
+slm_braindata$subject = NULL; # remove non-numerical column.
+slm_braindata = data.matrix(slm_braindata);
+
+mm <- model.matrix(~ factor(demographics$group) + demographics$age + demographics$iq + factor(demographics$site) + demographics$totalMeanCorticalThickness);
+
+predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors in the model.matrix
+slm_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
+slm_t_res <- brainnet::slm_t(mm, slm_braindata, model.term = "group");
+
+if(do_plot) {
+
+    measure_to_plot = "cohens.f"; # can use "cohens.f", "etasq", or "power".
+
+    #visualization of per vertex effect sizes of group on fsaverage.
+    for(pred_idx in seq.int(length(predictors))) {
+        predictor = predictors[pred_idx];
+
+        measure_values = slm_res[[measure_to_plot]][predictor, ];
+
+        ## Our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes, and we have 34 instead of 36 regions (due to ignored NAN regions), so the plot function cannot decide which values belong to which region, and we need to do some manual adaptations. We fix the names.
+        ## UPDATE: We now solve this with fsbrain::hemilist.from.prefixed.list, see below.
+        #lh_region_value_list = measure_values[startsWith(names(measure_values), "lh")];
+        #rh_region_value_list = measure_values[startsWith(names(measure_values), "rh")];
+        #names(lh_region_value_list) = substring(names(lh_region_value_list), 4); # remove prefix 'lh_'
+        #names(rh_region_value_list) = substring(names(rh_region_value_list), 4); # remove prefix 'rh_'
+
+        effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(measure_values);
+        lh_region_value_list = effect_sizes_by_hemi$lh;
+        rh_region_value_list = effect_sizes_by_hemi$rh;
+
+        cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = lh_region_value_list, rh_region_value_list = rh_region_value_list, atlas = atlas, views = NULL);
+
+        output_img = sprintf("%s_%s.png", measure_to_plot, predictor);
+        cat(sprintf("Writing %s figure for predictor '%s' to file: %s\n", measure_to_plot, predictor, output_img));
+        fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure_to_plot, predictor));
+    }
+
+    # A single effect size (or whatever) violin plot for all predictors.
+    brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]], plot_ylabel=measure_to_plot);
+}
+```
+
+
+
