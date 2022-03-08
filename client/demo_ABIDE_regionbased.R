@@ -16,7 +16,7 @@ library("ggplot2");   # general purpose plots
 ########################## Load data and demographics ##########################
 ################################################################################
 
-do_plot=FALSE;
+do_plot=TRUE;
 
 subjects_dir = brainnet:::get_ABIDE_path_on_tims_machines(); # replace with the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 if(! dir.exists(subjects_dir)) {
@@ -108,76 +108,82 @@ braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
 braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
 braindata$rh_unknown = NULL; # Same for other hemisphere.
 
-## Merge the brain data with the demographics. This is an inner join, so it discards braindata for subjects which are not in the filtered demographics.
-glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject");
-
 ## Run the GLMs (on per atlas region/hemi)
 considered_atlas_regions = names(braindata);
 considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"]; # ignore subject column (it's not a region).
 
-region_idx = 1L;
-region_fits = list();
-pvalues_group = list();
-effect_sizes_group = list();
-for(region_name in considered_atlas_regions) {
-    cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
-    formula_region = sprintf("%s ~ group + age + iq + site + totalMeanCorticalThickness", region_name); # we do not use gender because the sample is all male.
-    fit = glm(formula = formula_region, data = glm_data, family=gaussian());
-    region_fits[[region_name]] = fit;
-    pvalues_group[[region_name]] = unname(coef(summary.glm(fit))[2,4]);   ## You can change the numbers here to access data for other predictors, the default is main effect of group (due to the order in the formula above).
-
-    raw_sd_case = sd(glm_data[[region_name]][glm_data$group == "asd"]);
-    raw_sd_control = sd(glm_data[[region_name]][glm_data$group == "control"]);
-    raw_sd_pooled = sqrt((raw_sd_case * raw_sd_case + raw_sd_control * raw_sd_control) / 2.0);
-    effect_group_case_mean = effects::effect("group", fit)$fit[1];
-    effect_group_control_mean = effects::effect("group", fit)$fit[2];
-    cohen_d = (effect_group_case_mean - effect_group_control_mean) / raw_sd_pooled;
-    effect_sizes_group[[region_name]] = abs(cohen_d); # we are not interested in direction for effect size.
-
-    region_idx = region_idx + 1L;
-}
-
-# Investigate region_fits and pvalues_group.
-
-## Prints stats for a single region
-#fit = region_fits$lh_bankssts;
-#summary(fit);
-#plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
-
-## Visualize values for all regions.
-effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
-if(do_plot) {
-    cm_eff = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = atlas, views = NULL);
-    fsbrain::export(cm_eff, colorbar_legend = "Cohens d", output_img = "abide_regions_group_cohen_d.png");
-}
-
-
-
-sig_level = 0.05;
-pvalues_by_hemi = fsbrain::hemilist.from.prefixed.list(pvalues_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
-cat(sprintf("There are %d significant regions out of %d regions total BEFORE correction for multiple comparisons.\n", length(which(unlist(pvalues_by_hemi) < sig_level)), length(considered_atlas_regions)));
-if(do_plot) {
-    cm_p = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = pvalues_by_hemi$lh, rh_region_value_list = pvalues_by_hemi$rh, atlas = atlas, views = NULL);
-    fsbrain::export(cm_p, colorbar_legend = "Uncorrected p value for group effect", output_img = "abide_regions_group_pvalue_uncorrected.png");
-}
-
-# Multiple-comparison correction for p values (over #regions*hemis):
-p_adj = p.adjust(unlist(pvalues_by_hemi), method="fdr");
-cat(sprintf("There are %d significant regions out of %d regions total AFTER correction for multiple comparisons.\n", length(which(p_adj < sig_level)), length(considered_atlas_regions)));
-print(which(p_adj < sig_level));
-if(do_plot) {
-    cm_p_adj = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = p_adj[startsWith(names(p_adj), "lh")], rh_region_value_list = p_adj[startsWith(names(p_adj), "rh")], atlas = atlas, views = NULL);
-    fsbrain::export(cm_p_adj, colorbar_legend = "Corrected p value for group effect", output_img = "abide_regions_group_pvalue_fdr_corrected.png");
-}
-
-
-##### Completely optional: a demonstration of how to achieve the same GLM results with the slmtools functions.
-#####                      These functions are a lot faster, which is required for vertex-wise comparisons. Here we
-#####                      illustrate how they can be used for region-wise analysis (even though they are not required in that case).
-##### The slmtools function require the data in a different format than the `glm` function used above, therefore we need
-####  to do some data restructuring before we can start.
 do_use_slmtools = TRUE;
-if(do_use_slmtools) {
+
+
+if(! do_use_slmtools)  {
+    ## Merge the brain data with the demographics. This is an inner join, so it discards braindata for subjects which are not in the filtered demographics.
+    glm_data = base::merge(demographics, braindata, by.x="subject_id", by.y="subject");
+
+
+    region_idx = 1L;
+    region_fits = list();
+    pvalues_group = list();
+    effect_sizes_group = list();
+    for(region_name in considered_atlas_regions) {
+        cat(sprintf("### Handling Region '%s' (%d of %d). ###\n", region_name, region_idx, length(considered_atlas_regions)));
+        formula_region = sprintf("%s ~ group + age + iq + site + totalMeanCorticalThickness", region_name); # we do not use gender because the sample is all male.
+        fit = glm(formula = formula_region, data = glm_data, family=gaussian());
+        region_fits[[region_name]] = fit;
+        pvalues_group[[region_name]] = unname(coef(summary.glm(fit))[2,4]);   ## You can change the numbers here to access data for other predictors, the default is main effect of group (due to the order in the formula above).
+
+        raw_sd_case = sd(glm_data[[region_name]][glm_data$group == "asd"]);
+        raw_sd_control = sd(glm_data[[region_name]][glm_data$group == "control"]);
+        raw_sd_pooled = sqrt((raw_sd_case * raw_sd_case + raw_sd_control * raw_sd_control) / 2.0);
+        effect_group_case_mean = effects::effect("group", fit)$fit[1];
+        effect_group_control_mean = effects::effect("group", fit)$fit[2];
+        cohen_d = (effect_group_case_mean - effect_group_control_mean) / raw_sd_pooled;
+        effect_sizes_group[[region_name]] = abs(cohen_d); # we are not interested in direction for effect size.
+
+        region_idx = region_idx + 1L;
+    }
+
+    # Investigate region_fits and pvalues_group.
+
+    ## Prints stats for a single region
+    #fit = region_fits$lh_bankssts;
+    #summary(fit);
+    #plot(effects::allEffects(fit)); # https://www.jstatsoft.org/article/view/v008i15/effect-displays-revised.pdf
+
+    ## Visualize values for all regions.
+    effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(effect_sizes_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
+    if(do_plot) {
+        cm_eff = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = atlas, views = NULL);
+        fsbrain::export(cm_eff, colorbar_legend = "Cohens d", output_img = "abide_regions_group_cohen_d.png");
+    }
+
+
+
+    sig_level = 0.05;
+    pvalues_by_hemi = fsbrain::hemilist.from.prefixed.list(pvalues_group); # split the single list with lh_ and rh_ prefixes into two lh and rh lists.
+    cat(sprintf("There are %d significant regions out of %d regions total BEFORE correction for multiple comparisons.\n", length(which(unlist(pvalues_by_hemi) < sig_level)), length(considered_atlas_regions)));
+    if(do_plot) {
+        cm_p = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = pvalues_by_hemi$lh, rh_region_value_list = pvalues_by_hemi$rh, atlas = atlas, views = NULL);
+        fsbrain::export(cm_p, colorbar_legend = "Uncorrected p value for group effect", output_img = "abide_regions_group_pvalue_uncorrected.png");
+    }
+
+    # Multiple-comparison correction for p values (over #regions*hemis):
+    p_adj = p.adjust(unlist(pvalues_by_hemi), method="fdr");
+    cat(sprintf("There are %d significant regions out of %d regions total AFTER correction for multiple comparisons.\n", length(which(p_adj < sig_level)), length(considered_atlas_regions)));
+    print(which(p_adj < sig_level));
+    if(do_plot) {
+        cm_p_adj = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = p_adj[startsWith(names(p_adj), "lh")], rh_region_value_list = p_adj[startsWith(names(p_adj), "rh")], atlas = atlas, views = NULL);
+        fsbrain::export(cm_p_adj, colorbar_legend = "Corrected p value for group effect", output_img = "abide_regions_group_pvalue_fdr_corrected.png");
+    }
+
+
+
+
+} else {
+    ##### Completely optional: a demonstration of how to achieve the same GLM results with the slmtools functions.
+    #####                      These functions are a lot faster, which is required for vertex-wise comparisons. Here we
+    #####                      illustrate how they can be used for region-wise analysis (even though they are not required in that case).
+    ##### The slmtools function require the data in a different format than the `glm` function used above, therefore we need
+    ####  to do some data restructuring before we can start.
     slm_braindata = subset(braindata, braindata$subject %in% demographics$subject_id);
     slm_braindata$subject = NULL; # remove non-numerical column.
     slm_braindata = data.matrix(slm_braindata);

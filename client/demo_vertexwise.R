@@ -6,7 +6,7 @@
 
 library("brainnet");
 library("fsbrain");   # loading neuroimaging data and visualizing results. you need a version > 0.5.0, to get that run: devtools::install_github("dfsp-spirit/fsbrain")
-library("kernlab");   # Gaussian process classificaiton
+library("kernlab");   # Gaussian process classification
 library("readxl");    # read Excel demographcis file
 library("effects");   # GLM effects
 library("emmeans");   # GLM effects
