@@ -26,7 +26,8 @@ library("ggplot2");   # general purpose plots
 ### Settings
 
 ```{r}
-do_plot = TRUE;    # This is a lot faster without
+do_plot = TRUE;    # This is a lot faster without plotting. Disable plotting during development.
+do_export_high_quality_plots = FALSE;
 ```
 
 
@@ -35,6 +36,7 @@ do_plot = TRUE;    # This is a lot faster without
 if(do_plot) {
     fsbrain::download_optional_data();
     fsbrain::download_fsaverage(accept_freesurfer_license = TRUE);
+    fsbrain::fsbrain.set.default.figsize(700, 700);
 }
 ```
 
@@ -150,6 +152,7 @@ Now we actually load the data. There are 2 options:
 1) Aggregate the native space data by atlas region from the raw per-vertex data files and parcellations. This takes quite a bit of time due to data loading for a large data set (and slow hard disks/networks). We do no do this here. We still illustrate how it could be done:
 
 ```{r, eval = FALSE}
+# This is not run.
 braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas);
 ```
 
@@ -173,7 +176,7 @@ if(do_plot) {
 
 ### Data cleanup
 
-Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do not need to change it. These columns contain only NAN values.
+Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do **not** need to change it. These columns contain only NAN values.
 Note: You may not have these columns if you used 'region.data.from.segstat.tables()' to load the data, but even then these lines won't hurt (setting non-existing columns to NULL is a no-op).
 
 ```{r}
@@ -213,12 +216,14 @@ Specify and run the model.
 
 ## Run the GLMs (on per atlas region/hemi)
 
+Prepare the formula and compute effect sizes.
+
 
 ```{r}
 mm <- model.matrix(~ factor(demographics$group) + demographics$age + demographics$iq + factor(demographics$site) + demographics$totalMeanCorticalThickness);
 
 predictors <- c("group", "age", "iq", "site", "mean_ct"); # names for the predictors in the model.matrix
-slm_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
+slm_ef_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohens.f", "etasq", "power"));
 #slm_t_res <- brainnet::slm_t(mm, slm_braindata, model.term = "group");
 ```
 
@@ -230,47 +235,38 @@ You now have the effect sizes for all predictors in variable `slm_res$cohens.f`.
 
 Optional: here we plot the effect size by atlas region.
 
-```{r rgl=TRUE, fig.show = 'hide', warning = 'hide'}
-if(do_plot) {
-
-    measure_to_plot = "cohens.f";           # Choose one. Can use "cohens.f", "etasq", or "power".
-    predictors_to_plot = c("group", "age"); # Choose one or more from variable 'predictors'.
-    fsbrain_plots = list();
-
-    #visualization of per vertex effect sizes of group on fsaverage.
-    for(pred_idx in seq.int(length(predictors))) {
-        predictor = predictors[pred_idx];
-        
-        if(!(predictor %in% predictors_to_plot)) {
-            next; # skip others.
-        }
-
-        measure_values = slm_res[[measure_to_plot]][predictor, ];
-
-        # Our region names do not match the ones from the aparc atlas due to the lh_ and rh_ prefixes,
-        # so we split into one listper hemisphere based on the prefixes.
-        effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(measure_values);
-        lh_region_value_list = effect_sizes_by_hemi$lh;
-        rh_region_value_list = effect_sizes_by_hemi$rh;
-
-        cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = lh_region_value_list, rh_region_value_list = rh_region_value_list, atlas = atlas, views = NULL);
-
-        output_img = sprintf("%s_%s.png", measure_to_plot, predictor);
-        cat(sprintf("Writing %s figure for predictor '%s' to file '%s' in directory '%s'.\n", measure_to_plot, predictor, output_img, getwd()));
-        img = fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure_to_plot, predictor));
-        fsbrain_plots[[predictor]] = img;
-    }
-
-    # A single effect size (or whatever) violin plot for all predictors.
-    ggplot_instance = brainnet::effect_size_violin_plots(slm_res[[measure_to_plot]], plot_ylabel=measure_to_plot);
+```{r rgl=TRUE, dev='png', warning = 'hide'}
+# This section only defines the plotting function, just ignore it.
+plot_slm_ef_res <- function(slm_ef_res, measure, predictor, do_export = FALSE) {
+      measure_values = slm_ef_res[[measure]][predictor, ];
+      effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(measure_values);
+      cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = atlas, draw_colorbar = TRUE);
+      if(do_export) {
+        output_img = sprintf("%s_%s.png", measure, predictor);
+        cat(sprintf("Writing '%s' figure for predictor '%s' to file '%s' in directory '%s'.\n", measure, predictor, output_img, getwd()));
+        img = fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure, predictor));
+      }
+      
 }
 ```
 
-Show the plots in the notebook (if any):
 
-```{r}
+```{r rgl=TRUE, dev='png', warning = 'hide'}
 if(do_plot) {
-    fsbrain_plots["group"];
+
+    measure = "cohens.f";           # Choose one. Can use "cohens.f", "etasq", or "power".
+    predictor = "group";
+    
+    cat(sprintf("Showing %s for predictor %s.\n", measure, predictor));
+    plot_slm_ef_res(slm_ef_res, measure, predictor, do_export = do_export_high_quality_plots);
+}
+```
+
+
+```{r, warning = 'hide'}
+if(do_plot) {
+    # A single effect size (or goodness-of-fit, or power) violin plot for all predictors.
+    ggplot_instance = brainnet::effect_size_violin_plots(slm_ef_res[[measure]], plot_ylabel=measure);
     ggplot_instance;
 }
 ```
