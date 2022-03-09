@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 rgl::setupKnitr()
 ```
 
-This script demonstrates one way to analyze atlas-based neuroimaging data in R. It uses data from the publicly available ABIDE data set (pre-processed with FreeSurfer) to analyze group differences in cortical thickness between neurotypical controls and people with ASD. The sample is from the DiMartino **et al.** paper **Molecular Psychiatry volume 19, pages 659–667 (2014)** and all male. The brain regions are defined by the Desikan-Killiany atlas.
+This script demonstrates one way to analyze atlas-based neuroimaging data in R. It uses data from the publicly available ABIDE data set (pre-processed with FreeSurfer) to analyze group differences in cortical thickness between neurotypical controls and people with ASD. The sample is from the DiMartino *et al.* paper **Molecular Psychiatry volume 19, pages 659–667 (2014)** and all male. The brain regions are defined by the Desikan-Killiany atlas.
 
 
 ### Load required packages
@@ -42,9 +42,8 @@ if(do_plot) {
 }
 ```
 
-# Load data and demographics
 
-## Load the demographics and total brain measurements
+## Load and process demographics and other metadata
 
 The demographics data includes the group membership, and covariates like age, gender, and IQ. The total brain measurements are also
 loaded by the `load_ABIDE_metadata_males()` function and merged with the other metadata. They are typically used to correct for
@@ -61,16 +60,17 @@ demographics = md$merged; # Extract the field that contains the merged brainstat
 ```
 
 
-## Define your sample
+### Define your sample
 
 You task: Define your own sample here.
 
-The sample should be a subset of the available data (rows) in the data.frame 'demographics' that must:
-  1) follow your inclusion criteria (=> e.g.,define a suitable age range for your research question and filter the subjects accordingly)
-  2) not include bad quality scans (=> perform some sort of quality inspection of the data and filter subjects that do not pass the quality criteria)
-  3) achieve at least approximate balance between covariates for the groups (=> check for significant iq/age/... differences between controls and cases and reduce them using matching).
+The sample should be a subset of the available data (rows) in the data.frame 'demographics' that:
 
-### Data Quality checks
+1. must follow your inclusion criteria (=> e.g.,define a suitable age range for your research question and filter the subjects accordingly)
+2. must not include bad quality scans (=> perform some sort of quality inspection of the data and filter subjects that do not pass the quality criteria)
+3. should achieve at least approximate balance between covariates for the groups (=> check for significant iq/age/... differences between controls and cases and reduce them using matching).
+
+#### Data Quality checks
 
 The next lines show a basic QC example:
 
@@ -84,7 +84,7 @@ cat(sprintf("Excluded %d of %d subjects due to bad scan quality. %d left.\n", le
 ```
 
 
-### Apply your inclusion criteria
+#### Apply your inclusion criteria
 
 Here is an example for inclusion/exclusion criteria: we only keep subjects with IQ >= 70 and age between 12 and 18 years.
 
@@ -97,7 +97,7 @@ cat(sprintf("Excluded %d of %d subjects due to inclusion criteria. %d left.\n", 
 ```
 
 
-### Matching
+#### Matching
 
 Now for the matching. We use cardinality matching here, but that may not be what you want. Read the documentation for MatchIt to see (many!) other options.
 
@@ -123,7 +123,7 @@ demographics = my_demographics_qc_incl_matched;
 
 Your sample should be complete by this line, with results in variable 'demographics'.
 
-### Sample overview
+#### Sample overview
 
 Print some information on the sample to make sure it matches your expectations:
 
@@ -139,7 +139,7 @@ if(length(subjects_asd) + length(subjects_control) != length(subjects_list)) {
 ```
 
 
-## Load the neuroimaging data
+## Load the FreeSurfer neuroimaging data
 
 First we specify which data we want to load: the atlas and measure are the important ones.
 
@@ -151,32 +151,34 @@ atlas="aparc";  ## The atlas you want, 'aparc' for Desikan-Killiany atlas, 'apar
 
 Now we actually load the data. There are 2 options:
 
-1) Aggregate the native space data by atlas region from the raw per-vertex data files and parcellations. This takes quite a bit of time due to data loading for a large data set (and slow hard disks/networks). We do no do this here. We still illustrate how it could be done:
+1) Aggregate the native space data by atlas region from the raw per-vertex data files and native space parcellations in R. This takes quite a bit of time due to data loading for a large data set (and slow hard disks/networks). We do no do this here, but we still illustrate how it could be done:
 
 ```{r, eval = FALSE}
 # This is not run.
 braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure=measure, hemi=hemi, atlas=atlas);
 ```
 
-2) Alternatively, one could load a CSV file produced by the FreeSurfer tool `aparcstats2table` for your descriptor (one file per hemi). Then you would only need to do the computation once (when running that command), so here in R all you need to do is to load a CSV file, which is very fast.
+2) Alternatively, one could load CSV files produced by the FreeSurfer tool `aparcstats2table` for your descriptor (one CSV file per hemisphere). Then you would only need to do the computation once (when running that command), so here in R all you need to do is to load the resultung CSV files, which is very fast.
 
 ```{r}
-model_data_segstats_files = aparcstats_files_ABIDE(measure = measure); # for ABIDE, we ship the files with this package.
+model_data_segstats_files = aparcstats_files_ABIDE(measure = measure); # for ABIDE, we ship the files with this package for some measures.
 braindata = region_data_from_segstat_tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
 ```
 
 
-## Data postprocessing
+### Data postprocessing
 
-### Optional: visualize the data for a subject.
+#### Optional: visualize the data for a subject.
 
-```{r rgl=TRUE, dev='png'}
+We do not actually do this, we just illustrate how it could be done.
+
+```{r, eval = FALSE}
 if(do_plot) {
     fsbrain::vis.subject.morph.native(subjects_dir, subjects_list[1], measure = measure, draw_colorbar = TRUE);
 }
 ```
 
-### Data cleanup
+#### Data cleanup
 
 Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the 'aparc' (Desikan) atlas, you do **not** need to change it. These columns contain only NAN values.
 Note: You may not have these columns if you used 'region.data.from.segstat.tables()' to load the data, but even then these lines won't hurt (setting non-existing columns to NULL is a no-op).
@@ -189,7 +191,7 @@ braindata$rh_unknown = NULL; # Same for other hemisphere.
 ```
 
 
-### Data format conversion
+#### Data format conversion
 
 Some final data preparations: we need to exclude the non-numerical 'subject' column from the data, filter the data to keep only the rows for subjects which are part of our sample, and turn them into a `data.matrix` for the statistical analysis.
 
@@ -202,7 +204,7 @@ slm_braindata$subject = NULL; # remove non-numerical column.
 slm_braindata = data.matrix(slm_braindata);
 ```
 
-### Data Normalization
+#### Data Normalization
 
 Do you want to normalize the predictors (age, iq, meanCT/brainvol)?
 What are the advantages and disadvantages?
@@ -212,11 +214,11 @@ If you want to do it, you can use `base::scale()` here on your data.
 # TODO: normalize here.
 ```
 
-# Statistical analysis
+## Statistical analysis
 
 Specify and run the model.
 
-## Run the GLMs (on per atlas region/hemi)
+### Run the GLMs (on per atlas region/hemi)
 
 Prepare the formula and compute effect sizes.
 
@@ -233,22 +235,26 @@ slm_ef_res <- brainnet::slm_effect_sizes(mm, slm_braindata, predictors, c("cohen
 You now have the effect sizes for all predictors in variable `slm_res$cohens.f`.
 
 
-## Visualization of results
+### Visualization of results
 
 Optional: here we plot the effect size by atlas region.
 
-```{r rgl=TRUE, dev='png', warning = 'hide'}
+```{r rgl=TRUE, dev='png', warning = 'hide', echo=FALSE, results=FALSE}
 # This section only defines the plotting function, just ignore it.
 plot_slm_ef_res <- function(slm_ef_res, measure, predictor, do_export = FALSE) {
-      measure_values = slm_ef_res[[measure]][predictor, ];
-      effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(measure_values);
-      cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = atlas, draw_colorbar = TRUE);
-      if(do_export) {
-        output_img = sprintf("%s_%s.png", measure, predictor);
-        cat(sprintf("Writing '%s' figure for predictor '%s' to file '%s' in directory '%s'.\n", measure, predictor, output_img, getwd()));
-        img = fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure, predictor));
-      }
-      
+  res = list("");
+  measure_values = slm_ef_res[[measure]][predictor, ];
+  effect_sizes_by_hemi = fsbrain::hemilist.from.prefixed.list(measure_values);
+  cm = fsbrain::vis.region.values.on.subject(fsbrain::fsaverage.path(), 'fsaverage', lh_region_value_list = effect_sizes_by_hemi$lh, rh_region_value_list = effect_sizes_by_hemi$rh, atlas = atlas, draw_colorbar = TRUE);
+  res$cm = cm;
+  
+  if(do_export) {
+    output_img = sprintf("%s_%s.png", measure, predictor);
+    cat(sprintf("Writing '%s' figure for predictor '%s' to file '%s' in directory '%s'.\n", measure, predictor, output_img, getwd()));
+    img = fsbrain::export(cm, output_img = output_img, colorbar_legend = sprintf("%s for %s ", measure, predictor));
+    res$img = img;
+  }
+  return(res);
 }
 ```
 
@@ -260,7 +266,7 @@ if(do_plot) {
     predictor = "group";
     
     cat(sprintf("Showing %s for predictor %s.\n", measure, predictor));
-    plot_slm_ef_res(slm_ef_res, measure, predictor, do_export = do_export_high_quality_plots);
+    plot_res = plot_slm_ef_res(slm_ef_res, measure, predictor, do_export = do_export_high_quality_plots);
 }
 ```
 
