@@ -1,7 +1,7 @@
 ---
-title: "fsbrain visualization examples"
+title: "Region-based analysis of surface-based neuroimaging data in R"
 author: "Tim Schäfer"
-date: "Septmember 16, 2021"
+date: "March 02, 2022"
 output: html_document
 ---
 
@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 rgl::setupKnitr()
 ```
+
+This script demonstrates one way to analyze atlas-based neuroimaging data in R. It uses data from the publicly available ABIDE data set (pre-processed with FreeSurfer) to analyze group differences in cortical thickness between neurotypical controls and people with ASD. The sample is from the DiMartino **et al.** paper **Molecular Psychiatry volume 19, pages 659–667 (2014)** and all male. The brain regions are defined by the Desikan-Killiany atlas.
 
 
 ### Load required packages
