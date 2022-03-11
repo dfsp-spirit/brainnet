@@ -53,7 +53,7 @@ Once you have installed the `brainnet` package (see above), I would suggest to d
 
 E.g., download the file [client/demo_ABIDE_regionbased.Rmd](https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.Rmd) or [browse all scripts in the client directory](./client).
 
-If you downloaded the *demo_ABIDE_regionbased.Rmd* notebook, you can open it in Rstudio and click the small *Knit* button above the *source* panel to run it.
+If you downloaded the [demo_ABIDE_regionbased.Rmd](https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.Rmd) notebook, you can open it in Rstudio and click the small *Knit* button above the *source* panel to run it.
 
 
 You can get help for all brainnet package functions by running `help(package="brainnet")` in R.
