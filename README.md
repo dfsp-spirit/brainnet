@@ -51,7 +51,9 @@ If you want to compile manually under MacOS instead of using the available binar
 
 Once you have installed the `brainnet` package (see above), I would suggest to download a copy of one of the demo scripts to your computer. Create a new directory for all your analyses, place the file in there, and open it in Rstudio to edit it. 
 
-E.g., download the file [client/demo_ABIDE_regionbased.R](https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.R) or [browse all scripts in the client directory](./client).
+E.g., download the file [client/demo_ABIDE_regionbased.Rmd](https://raw.githubusercontent.com/dfsp-spirit/brainnet/main/client/demo_ABIDE_regionbased.Rmd) or [browse all scripts in the client directory](./client).
+
+If you downloaded the *demo_ABIDE_regionbased.Rmd* notebook, you can open it in Rstudio and click the small *Knit* button above the *source* panel to run it.
 
 
 You can get help for all brainnet package functions by running `help(package="brainnet")` in R.
