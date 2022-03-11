@@ -218,8 +218,8 @@ qc = fsbrain::qc.from.segstats.tables(qc_segstats_files$lh, qc_segstats_files$rh
 # qc = fsbrain::qc.for.group(subjects_dir, subjects_list, measure = &quot;thickness&quot;, atlas = &quot;aparc&quot;); # This could be used if you cannot get the files (which is very unlikely if you have the data required to run this command). It is *a lot* slower than reading the pre-computed file. You should NOT use this unless there really is no other way.
 bad_quality_subjects = unique(c(qc$lh$failed_subjects, qc$rh$failed_subjects)); # extract failed subjects from quality check results.
 my_demographics_qc = subset(demographics, !(demographics$subject_id %in% bad_quality_subjects)); # Remove all bad quality scans.
-cat(sprintf(&quot;Excluded %d of %d subjects due to bad scan quality. %d left.\n&quot;, length(bad_quality_subjects), nrow(demographics), nrow(my_demographics_qc)));</code></pre>
-<pre><code>## Excluded 62 of 708 subjects due to bad scan quality. 671 left.</code></pre>
+cat(sprintf(&quot;Excluded %d of %d total subjects due to bad scan quality. %d left.\n&quot;, length(bad_quality_subjects), nrow(demographics), nrow(my_demographics_qc)));</code></pre>
+<pre><code>## Excluded 62 of 708 total subjects due to bad scan quality. 671 left.</code></pre>
 </div>
 <div id="apply-your-inclusion-criteria" class="section level4">
 <h4>Apply your inclusion criteria</h4>
@@ -228,8 +228,8 @@ cat(sprintf(&quot;Excluded %d of %d subjects due to bad scan quality. %d left.\n
 my_demographics_qc_incl = subset(my_demographics_qc_incl, (my_demographics_qc_incl$age &gt;= 12 &amp; my_demographics_qc_incl$age &lt;= 18)); # Filter for age range.
 my_demographics_qc_incl = subset(my_demographics_qc_incl, (my_demographics_qc_incl$iq &gt;= 70.0)); # Filter by IQ.
 num_excluded_by_inclusion_criteria = nrow(my_demographics_qc) - nrow(my_demographics_qc_incl);
-cat(sprintf(&quot;Excluded %d of %d subjects due to inclusion criteria. %d left.\n&quot;, num_excluded_by_inclusion_criteria, nrow(demographics), nrow(my_demographics_qc_incl)));</code></pre>
-<pre><code>## Excluded 364 of 708 subjects due to inclusion criteria. 307 left.</code></pre>
+cat(sprintf(&quot;Excluded %d of %d total subjects due to inclusion criteria. %d left.\n&quot;, num_excluded_by_inclusion_criteria, nrow(demographics), nrow(my_demographics_qc_incl)));</code></pre>
+<pre><code>## Excluded 364 of 708 total subjects due to inclusion criteria. 307 left.</code></pre>
 </div>
 <div id="matching" class="section level4">
 <h4>Matching</h4>
@@ -243,8 +243,8 @@ mymatch = MatchIt::matchit(group ~ age + iq + totalBrainVolume, data = my_demogr
 my_demographics_qc_incl_matched = MatchIt::match.data(mymatch);
 my_demographics_qc_incl_matched$weights = NULL; # delete the &#39;weights&#39; column added by matching, it is useless (all ones) in the case of cardinality matching.
 num_excluded_by_matching = nrow(my_demographics_qc_incl) - nrow(my_demographics_qc_incl_matched);
-cat(sprintf(&quot;Excluded %d of %d subjects due to matching. %d left.\n&quot;, num_excluded_by_matching, nrow(demographics), nrow(my_demographics_qc_incl_matched)));</code></pre>
-<pre><code>## Excluded 9 of 708 subjects due to matching. 298 left.</code></pre>
+cat(sprintf(&quot;Excluded %d of %d total subjects due to matching. %d left.\n&quot;, num_excluded_by_matching, nrow(demographics), nrow(my_demographics_qc_incl_matched)));</code></pre>
+<pre><code>## Excluded 9 of 708 total subjects due to matching. 298 left.</code></pre>
 <p>All done, let us actually use our modified demographics:</p>
 <pre class="r"><code>demographics = my_demographics_qc_incl_matched;</code></pre>
 <p>Your sample should be complete by this line, with results in variable ‘demographics’.</p>
@@ -259,7 +259,7 @@ subjects_asd = subjects_list[demographics$group == &quot;asd&quot;];
 cat(sprintf(&quot;Working with %d subjects in total: %d ASD and %s controls.\n&quot;, length(subjects_list), length(subjects_asd), length(subjects_control)));</code></pre>
 <pre><code>## Working with 298 subjects in total: 149 ASD and 149 controls.</code></pre>
 <pre class="r"><code>if(length(subjects_asd) + length(subjects_control) != length(subjects_list)) {
-    stop(&quot;Invalid group assignment to case/control (or more than 2 groups).&quot;);
+    stop(&quot;Invalid group assignment to case/control: maybe wrong factor levels/group names (expected &#39;control&#39; and &#39;asd&#39;), or more than 2 groups.&quot;);
 }</code></pre>
 </div>
 </div>
@@ -294,25 +294,23 @@ if(do_plot) {
 </div>
 <div id="data-cleanup" class="section level4">
 <h4>Data cleanup</h4>
-<p>Remove some columns (atlas regions) we do not want. This is atlas-specific, but if you use the ‘aparc’ (Desikan) atlas, you do <strong>not</strong> need to change it. These columns contain only NAN values. Note: You may not have these columns if you used ‘region.data.from.segstat.tables()’ to load the data, but even then these lines won’t hurt (setting non-existing columns to NULL is a no-op).</p>
-<pre class="r"><code>#braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
-#braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
-#braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
-#braindata$rh_unknown = NULL; # Same for other hemisphere.
-
-# Find atlas regions (columns in the data.frame) that contain NA values and remove them. These are columns which were not assigned any vertices, meaning that the mean function used to aggregate data over all vertices of the brain region returned NA. This typically happens for the &#39;unknown&#39; region and for the region representing the medial wall (that region is named &#39;corpuscallosum&#39; in the Desikan atlas).
+<p>Remove empty atlas regions we do not want. Here we identify atlas regions (columns in the <code>data.frame</code>) that contain <code>NA</code> values and remove them. These are regions which were not assigned any vertices, meaning that the mean function used to aggregate data over the vertices of that brain region returned <code>NA</code>. This typically happens for the <code>unknown</code> region and for the region representing the medial wall (that region is named <code>corpuscallosum</code> in the Desikan atlas). Whether such columns exist depends on the atlas and the method to load the <code>braindata</code>.</p>
+<pre class="r"><code># Remove NA columns/empty atlas regions, if any.
 na_column_indices = unique(which(is.na(braindata), arr.ind = TRUE)[,2]);
 if(length(na_column_indices) &gt; 0L) {
   del_cols = colnames(braindata)[na_column_indices];
   cat(sprintf(&quot;Ignoring %d of %d total brain atlas regions because their mean value is NA: %s.\n&quot;, length(na_column_indices), (ncol(braindata)-1L), paste(del_cols, collapse = &quot;,&quot;)));
   braindata[,na_column_indices]=NULL;
+} else {
+  cat(sprintf(&quot;All %d brain atlas regions contain valid values.\n&quot;, (ncol(braindata)-1L))); # The -1 is for the &#39;subject&#39; column.
 }</code></pre>
+<pre><code>## All 68 brain atlas regions contain valid values.</code></pre>
 </div>
 <div id="data-format-conversion" class="section level4">
 <h4>Data format conversion</h4>
 <p>Some final data preparations: we need to exclude the non-numerical ‘subject’ column from the data and turn them into a <code>data.matrix</code> for the statistical analysis.</p>
 <pre class="r"><code>slm_braindata = braindata;
-slm_braindata$subject = NULL; # remove non-numerical column.
+slm_braindata$subject = NULL; # remove non-numerical &#39;subject&#39; column.
 slm_braindata = data.matrix(slm_braindata);</code></pre>
 </div>
 <div id="data-normalization" class="section level4">
