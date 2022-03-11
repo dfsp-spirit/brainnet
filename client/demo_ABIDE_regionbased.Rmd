@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 rgl::setupKnitr()
 ```
 
-This script demonstrates one way to analyze atlas-based neuroimaging data in R. It uses data from the publicly available ABIDE data set (pre-processed with FreeSurfer) to analyze group differences in cortical thickness between neurotypical controls and people with ASD. The sample is from the DiMartino *et al.* paper **Molecular Psychiatry volume 19, pages 659–667 (2014)** and all male. The brain regions are defined by the Desikan-Killiany atlas.
+This script demonstrates one way to analyze atlas-based neuroimaging data in R. It uses data from the [publicly available ABIDE I data set](https://fcon_1000.projects.nitrc.org/indi/abide/) (pre-processed with [FreeSurfer](https://freesurfer.net/) v5.3) to analyze group differences in cortical thickness between neurotypical controls and people with ASD. The sample is from [this DiMartino *et al.* paper](https://doi.org/10.1038/mp.2013.78) and all male. The brain regions are defined by the [Desikan-Killiany atlas](https://doi.org/10.1016/j.neuroimage.2006.01.021).
 
 
 ### Load required packages
@@ -28,7 +28,7 @@ library("ggplot2");   # general purpose plots
 ### Settings
 
 ```{r}
-do_plot = TRUE;    # This is a lot faster without plotting. Disable plotting during development.
+do_plot = F;    # This is a lot faster without plotting. Disable plotting during development.
 do_export_high_quality_plots = FALSE;
 ```
 
@@ -52,7 +52,7 @@ total brain volume or similar measures.
 ```{r}
 subjects_dir = brainnet:::get_ABIDE_path_on_tims_machines(); # replace with the FreeSurfer SUBJECTS_DIR containing the neuroimaging data.
 if(! dir.exists(subjects_dir)) {
-    stop(sprintf("The subjects_dir '%s' does not exist.\n", subjects_dir));
+    warning(sprintf("The subjects_dir '%s' does not exist. This is okay if you only use the CSV data that comes with the brainnet package.\n", subjects_dir));
 }
 
 md = load_ABIDE_metadata_males(impute_data = TRUE);
@@ -68,7 +68,7 @@ The sample should be a subset of the available data (rows) in the data.frame 'de
 
 1. must follow your inclusion criteria (=> e.g.,define a suitable age range for your research question and filter the subjects accordingly)
 2. must not include bad quality scans (=> perform some sort of quality inspection of the data and filter subjects that do not pass the quality criteria)
-3. should achieve at least approximate balance between covariates for the groups (=> check for significant iq/age/... differences between controls and cases and reduce them using matching).
+3. should achieve at least approximate balance between covariates for the groups (=> check for significant IQ/age/... differences between controls and cases and reduce them using matching).
 
 #### Data Quality checks
 
@@ -99,7 +99,7 @@ cat(sprintf("Excluded %d of %d subjects due to inclusion criteria. %d left.\n", 
 
 #### Matching
 
-Now for the matching. We use cardinality matching here, but that may not be what you want. Read the documentation for MatchIt to see (many!) other options.
+Now for the matching. We use cardinality matching here, but that may not be what you want. Read the [documentation for MatchIt](https://cran.r-project.org/web/packages/MatchIt/vignettes/) to see (many!) other options.
 
 ```{r}
 ## The variables you need to match on also depend on your research question (mainly on the descriptor used).
@@ -163,6 +163,7 @@ braindata = fsbrain::group.agg.atlas.native(subjects_dir, subjects_list, measure
 ```{r}
 model_data_segstats_files = aparcstats_files_ABIDE(measure = measure); # for ABIDE, we ship the files with this package for some measures.
 braindata = region_data_from_segstat_tables(model_data_segstats_files$lh, model_data_segstats_files$rh);
+braindata = subset(braindata, braindata$subject %in% demographics$subject_id); # the CSV file is for all ABIDE subjects, need to limit to our sample.
 ```
 
 
@@ -173,6 +174,7 @@ braindata = region_data_from_segstat_tables(model_data_segstats_files$lh, model_
 We do not actually do this, we just illustrate how it could be done.
 
 ```{r, eval = FALSE}
+# This is not run.
 if(do_plot) {
     fsbrain::vis.subject.morph.native(subjects_dir, subjects_list[1], measure = measure, draw_colorbar = TRUE);
 }
@@ -184,22 +186,29 @@ Remove some columns (atlas regions) we do not want. This is atlas-specific, but 
 Note: You may not have these columns if you used 'region.data.from.segstat.tables()' to load the data, but even then these lines won't hurt (setting non-existing columns to NULL is a no-op).
 
 ```{r}
-braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
-braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
-braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
-braindata$rh_unknown = NULL; # Same for other hemisphere.
+#braindata$lh_corpuscallosum = NULL; # The corpus callosum is not part of the cortex, this is the medial wall that must be ignored. We delete the column.
+#braindata$rh_corpuscallosum = NULL; # Same for other hemisphere.
+#braindata$lh_unknown = NULL; # This should be empty (no vertices), and it will thus lead to all kinds of trouble if included. It is also pointless to include it as it is not a real brain region,so it has to be deleted as well.
+#braindata$rh_unknown = NULL; # Same for other hemisphere.
+
+# Find atlas regions (columns in the data.frame) that contain NA values and remove them. These are columns which were not assigned any vertices, meaning that the mean function used to aggregate data over all vertices of the brain region returned NA. This typically happens for the 'unknown' region and for the region representing the medial wall (that region is named 'corpuscallosum' in the Desikan atlas).
+na_column_indices = unique(which(is.na(braindata), arr.ind = TRUE)[,2]);
+if(length(na_column_indices) > 0L) {
+  del_cols = colnames(braindata)[na_column_indices];
+  cat(sprintf("Ignoring %d of %d total brain atlas regions because their mean value is NA: %s.\n", length(na_column_indices), (ncol(braindata)-1L), paste(del_cols, collapse = ",")));
+  braindata[,na_column_indices]=NULL;
+}
+
+
 ```
 
 
 #### Data format conversion
 
-Some final data preparations: we need to exclude the non-numerical 'subject' column from the data, filter the data to keep only the rows for subjects which are part of our sample, and turn them into a `data.matrix` for the statistical analysis.
+Some final data preparations: we need to exclude the non-numerical 'subject' column from the data and turn them into a `data.matrix` for the statistical analysis.
 
 ```{r}
-considered_atlas_regions = names(braindata);
-considered_atlas_regions = considered_atlas_regions[considered_atlas_regions != "subject"]; # ignore subject column (it's not a region).
-
-slm_braindata = subset(braindata, braindata$subject %in% demographics$subject_id);
+slm_braindata = braindata;
 slm_braindata$subject = NULL; # remove non-numerical column.
 slm_braindata = data.matrix(slm_braindata);
 ```
