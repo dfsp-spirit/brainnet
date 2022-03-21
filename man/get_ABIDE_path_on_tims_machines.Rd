@@ -7,7 +7,7 @@
 get_ABIDE_path_on_tims_machines()
 }
 \value{
-character string, the path to the ABIDE data, preprocessed with FreeSurfer (the recon-all output dir or SUBJECTS_DIR).
+character string, the path to the ABIDE data, pre-processed with FreeSurfer (the recon-all output dir or SUBJECTS_DIR).
 }
 \description{
 Search for the ABIDE data directory on my machine.
