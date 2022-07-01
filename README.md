@@ -16,8 +16,6 @@ This package is intended mainly for internal use, and for student projects in ou
 
 ## Installation
 
-**This is still work in progress, come back another day. The following instructions are for developers and *those who dare*:**
-
 You will need R installed on your system. We recommend to install a recent R version for your operating system from the [official R website](https://www.r-project.org/). We also suggest to install the free personal edition of the [Rstudio IDE](https://www.rstudio.com/products/rstudio/) after you have installed R itself, but that is optional.
 
 To install this package from an R session (switch to the *console* tab in Rstudio):
