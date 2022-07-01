@@ -1,7 +1,7 @@
 # brainnet
 Some helper functions for Machine learning on structural, surface-based neuroimaging data for R. 
 
-Ignore this unless you are a student in our working group.
+Ignore this unless you are a student/intern at the Ecker lab.
 
 ## About
 
